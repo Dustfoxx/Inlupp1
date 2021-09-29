@@ -3,9 +3,11 @@
 #include <string.h>
 #include "hash_table.h"
 //#include <CUnit/CUnit.h>
+//#include <CUnit/Basic.h>
 
+#define No_Buckets 17
 
-entry_t *find_previous_entry_for_key(entry_t *bucket, int key)
+static entry_t *find_previous_entry_for_key(entry_t *bucket, int key)
 {
   entry_t *cursor = bucket->next;
   entry_t *old_cursor = bucket;
@@ -20,7 +22,7 @@ entry_t *find_previous_entry_for_key(entry_t *bucket, int key)
     }
     return bucket;
 }
-
+ 
 ioopm_hash_table_t *ioopm_hash_table_create()
 {
     /// Allocate space for a ioopm_hash_table_t = 17 pointers to
@@ -29,7 +31,7 @@ ioopm_hash_table_t *ioopm_hash_table_create()
     return result;
 }
 
-void recurse_destroy(entry_t *chosen)
+static void recurse_destroy(entry_t *chosen)
 {
     if(chosen->next) //If next pointer exists, recurse
         recurse_destroy(chosen->next);
@@ -39,7 +41,7 @@ void recurse_destroy(entry_t *chosen)
 
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
 {
-    for(int i = 0; i < 17; i++)
+    for(int i = 0; i <  No_Buckets; i++)
     {
       entry_t *ptr = ht->buckets[i].next; //Gets next pointer
       if(ptr) 
@@ -50,7 +52,7 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
 
 /*void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
 {
-    for(int i = 0; i < 17; i++)
+    for(int i = 0; i < No_Buckets; i++)
     {
       entry_t *ptr = ht->buckets[i].next; //Gets next pointer
       entry_t *new_ptr;
@@ -67,7 +69,7 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
 option_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key)
 {
   /// Find the previous entry for key
-  entry_t *tmp = find_previous_entry_for_key(&ht->buckets[key % 17], key);
+  entry_t *tmp = find_previous_entry_for_key(&ht->buckets[key % No_Buckets], key);
   entry_t *next = tmp->next;
 
   if (next && next->value && next->key == key)
@@ -80,7 +82,7 @@ option_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key)
   }
 }
 
-entry_t *entry_create(int key, char *value, entry_t *entry)
+static entry_t *entry_create(int key, char *value, entry_t *entry)
 {
     /// Create an object for the new entry
   entry_t *new_entry = calloc(1, sizeof(entry_t));
@@ -96,7 +98,7 @@ entry_t *entry_create(int key, char *value, entry_t *entry)
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value)
 {
   /// Calculate the bucket for this entry
-  int bucket = key % 17;
+  int bucket = key % No_Buckets;
   /// Search for an existing entry for a key
   entry_t *entry = find_previous_entry_for_key(&ht->buckets[bucket], key);
   entry_t *next = entry->next;
@@ -109,12 +111,13 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value)
   else
     {
       entry->next = entry_create(key, value, next);
+      ht->size += 1;
     }
 }
 
 option_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key)
 {
-  entry_t *prev_ptr = find_previous_entry_for_key(&ht->buckets[key % 17], key);
+  entry_t *prev_ptr = find_previous_entry_for_key(&ht->buckets[key % No_Buckets], key);
   entry_t *replacing_ptr;
   char *removed_val;
   
@@ -132,13 +135,92 @@ option_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key)
           free(prev_ptr->next);
           prev_ptr->next = NULL;
       }
+    ht->size -= 1; 
     return Success(removed_val);
   }
   else
     return Failure()
 }
 
-void test_create_destroy()
+int ioopm_hash_table_size(ioopm_hash_table_t *ht)
+{
+  return ht->size;
+}
+
+bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht)
+{
+  return ht->size == 0;
+}
+
+void ioopm_hash_table_clear(ioopm_hash_table_t *ht)
+{
+  for(int i = 0; i < No_Buckets; i++)
+    {
+      entry_t *ptr = ht->buckets[i].next; //Gets next pointer
+      entry_t *new_ptr;
+      while(ptr)
+      {
+          new_ptr = ptr->next;
+          free(ptr);
+          ht->size -= 1;
+          ptr = new_ptr;
+      }
+      ht->buckets[i].next = NULL;
+    }
+}
+
+ioopm_hash_table_t *create_large_table()
+{
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  for(int i = 0; i < 50; i++)
+    {
+      ioopm_hash_table_insert(ht, i, "Value");
+    }
+  return ht;
+}
+
+int *ioopm_hash_table_keys(ioopm_hash_table_t *ht)
+{
+    int *returned_vals = calloc(ht->size, sizeof(int));
+    int p = 0;
+    for(int i = 0; i < No_Buckets; i++) //Denna typ av loop sker ofta
+    //Försök komma på sätt att bryta ut
+    {
+        entry_t *ptr = ht->buckets[i].next;
+        
+        while(ptr && p < ht->size)
+        {
+            returned_vals[p] = ptr->key;
+            p++;
+            ptr = ptr->next;
+        }
+    }
+    return returned_vals;
+}
+
+char **ioopm_hash_table_values(ioopm_hash_table_t *ht)
+{
+    char **returned_vals = calloc(ht->size + 1, sizeof(char *));
+    int p = 0;
+    for(int i = 0; i < No_Buckets; i++) //Denna typ av loop sker ofta
+    //Försök komma på sätt att bryta ut
+    {
+        entry_t *ptr = ht->buckets[i].next; 
+
+        while(ptr && p < ht->size)
+        {
+            returned_vals[p] = ptr->value;
+            p++;
+            ptr = ptr->next;
+        }
+        if(i == No_Buckets - 1)
+            returned_vals[p] = NULL;
+    }
+    return returned_vals;
+        
+}
+
+static void test_create_destroy()
 {
    ioopm_hash_table_t *ht = ioopm_hash_table_create();
    if(ht)
@@ -152,7 +234,7 @@ void test_create_destroy()
    }
 }
 
-void test_lookup1()
+static void test_lookup1()
 {
       ioopm_hash_table_t *ht = ioopm_hash_table_create();
       ioopm_hash_table_insert(ht, 0, "testing\n");
@@ -174,7 +256,7 @@ void test_lookup1()
       ioopm_hash_table_destroy(ht);
 }
 
-void test_lookup2()
+static void test_lookup2()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     for (int i = 0; i < 18; i++)
@@ -196,7 +278,7 @@ void test_lookup2()
 
 }
 
-void test_insert()
+static void test_insert()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, 5, "test");
@@ -208,16 +290,9 @@ void test_insert()
     ioopm_hash_table_destroy(test);
 }
 
-void test_remove()
+static void test_remove()
 {
-    ioopm_hash_table_t *ht = ioopm_hash_table_create();
-    ioopm_hash_table_insert(ht, 0, "First Removed");
-
-    for(int i = 0; i < 50; i++)
-    {
-      if(i % 17 != 0)
-          ioopm_hash_table_insert(ht, i, "Value");
-    }
+    ioopm_hash_table_t *ht = create_large_table();
 
     printf("Removed %s\n", ioopm_hash_table_remove(ht, 0).value);
     printf("Removed %s\n", ioopm_hash_table_remove(ht, 13).value);
@@ -232,11 +307,58 @@ void test_remove()
     ioopm_hash_table_destroy(ht);
 }
 
+static void test_size()
+{
+  ioopm_hash_table_t *ht = create_large_table();
+
+    printf("%d\n", ht->size);
+  ioopm_hash_table_destroy(ht);
+}
+
+static void test_clear()
+{
+    ioopm_hash_table_t *ht = create_large_table();
+    if(!ioopm_hash_table_is_empty(ht))
+        puts("List is created");
+    ioopm_hash_table_clear(ht);
+    if(ioopm_hash_table_is_empty(ht))
+        puts("Successfully cleared");
+    ioopm_hash_table_destroy(ht);
+}
+
+static void test_value_list()
+{
+    ioopm_hash_table_t *test = create_large_table();
+    char **happy = ioopm_hash_table_values(test);
+    if(happy[12] && happy[23] && happy[45])
+        puts("Valid ptrs");
+    else
+        puts("Failed");
+    ioopm_hash_table_destroy(test);
+    free(happy);
+}
+
+static void test_key_list()
+{
+    ioopm_hash_table_t *test = create_large_table();
+    int *happy = ioopm_hash_table_keys(test);
+    if(happy[3] == 35 && happy[21] == 41 && happy[49] == 16)
+        puts("Valid keys");
+    else
+        puts("Failed");
+    ioopm_hash_table_destroy(test);
+    free(happy);
+}
+
 int main()
 {
-    test_create_destroy();
-    test_insert();
-    test_lookup1();
-    test_lookup2();
-    test_remove();
+  test_create_destroy();
+  test_lookup1();
+  test_lookup2();
+  test_insert();
+  test_remove();
+  test_size();
+  test_clear();
+  test_value_list();
+  test_key_list();
 }
