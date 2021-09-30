@@ -220,6 +220,27 @@ char **ioopm_hash_table_values(ioopm_hash_table_t *ht)
         
 }
 
+bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, int key)
+{
+    option_t found = ioopm_hash_table_lookup(ht, key);
+    return Successful(found);
+}
+
+bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, char *value)
+{
+    char **value_list = ioopm_hash_table_values(ht);
+    for(int i = 0; value_list[i]; i++)
+    {
+        if(!strcmp(value_list[i], value))
+        {
+            free(value_list);
+            return true;
+        }
+    }
+    free(value_list);
+    return false;
+}
+
 static void test_create_destroy()
 {
    ioopm_hash_table_t *ht = ioopm_hash_table_create();
@@ -350,6 +371,26 @@ static void test_key_list()
     free(happy);
 }
 
+static void test_has_key()
+{
+    ioopm_hash_table_t *ht = create_large_table();
+    if(ioopm_hash_table_has_key(ht, 12) && !ioopm_hash_table_has_key(ht, 51))
+        puts("Has key works");
+    else
+        puts("Failed key search");
+    ioopm_hash_table_destroy(ht);
+}
+
+static void test_has_value()
+{
+    ioopm_hash_table_t *ht = create_large_table();
+    if(ioopm_hash_table_has_value(ht, "Value") && !ioopm_hash_table_has_value(ht, "51"))
+        puts("Has value works");
+    else
+        puts("Failed value search");
+    ioopm_hash_table_destroy(ht);
+}
+
 int main()
 {
   test_create_destroy();
@@ -361,4 +402,6 @@ int main()
   test_clear();
   test_value_list();
   test_key_list();
+  test_has_key();
+  test_has_value();
 }
