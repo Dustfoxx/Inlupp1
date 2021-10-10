@@ -2,6 +2,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list)
+{
+    ioopm_list_iterator_t *iter = calloc(1, sizeof(list));
+    if(list->next)
+    {
+        iter->current = list->next;
+        iter->next = list->next->next;
+        iter->first = list->next;
+        return iter;
+    }
+    iter->current = NULL;
+    iter->next = NULL;
+    iter->first = NULL;
+    return iter;
+}
+
 ioopm_list_t *ioopm_linked_list_create(void)
 {
     return calloc(1, sizeof(ioopm_list_t));
@@ -170,7 +186,7 @@ void print_key(int key, void *extra)
     printf("%d\n", key);
 }
 
-static ioopm_list_t *create_list()
+ioopm_list_t *create_list()
 {
     ioopm_list_t *list = ioopm_linked_list_create();
     for(int i = 0; i < 15; i++)
@@ -296,7 +312,7 @@ static void test_apply()
     ioopm_linked_list_destroy(list);
 }
 
-int main()
+/*int main()
 {
     //test_append();
     //test_prepend();
@@ -308,4 +324,4 @@ int main()
     //test_clear();
     test_check();
     test_apply();
-}
+}*/

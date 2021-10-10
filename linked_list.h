@@ -1,6 +1,8 @@
 #pragma once
 #include <stdbool.h>
 
+
+typedef struct iter ioopm_list_iterator_t;
 typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 
 #define Success(v)      (list_index_t) { .success = true, .ptr = v };
@@ -19,11 +21,23 @@ struct list_index
   ioopm_list_t *ptr;
 };
 
+struct iter
+{
+    struct list *current;
+    struct list *next;
+    struct list *first;
+};
+
 struct list
 {
     int value;
     struct list *next;
 };
+
+/// @brief Create an iterator for a given list
+/// @param list the list to be iterated over
+/// @return an iteration positioned at the start of list
+ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list);
 
 /// @brief Creates a new empty list
 /// @return an empty linked list
@@ -94,7 +108,7 @@ void ioopm_linked_list_clear(ioopm_list_t *list);
 /// @param prop the property to be tested (function pointer)
 /// @param extra an additional argument (may be NULL) that will be passed to all internal calls of prop
 /// @return true if prop holds for all elements in the list, else false
-//bool ioopm_linked_list_all(ioopm_list_t *list, ioopm_int_predicate prop, void *extra);
+bool ioopm_linked_list_all(ioopm_list_t *list, ioopm_int_predicate prop, void *extra);
 
 /// @brief Test if a supplied property holds for any element in a list.
 /// The function returns as soon as the return value can be determined.
@@ -102,10 +116,12 @@ void ioopm_linked_list_clear(ioopm_list_t *list);
 /// @param prop the property to be tested
 /// @param extra an additional argument (may be NULL) that will be passed to all internal calls of prop
 /// @return true if prop holds for any elements in the list, else false
-//bool ioopm_linked_list_any(ioopm_list_t *list, ioopm_int_predicate prop, void *extra);
+bool ioopm_linked_list_any(ioopm_list_t *list, ioopm_int_predicate prop, void *extra);
 
 /// @brief Apply a supplied function to all elements in a list.
 /// @param list the linked list
 /// @param fun the function to be applied
 /// @param extra an additional argument (may be NULL) that will be passed to all internal calls of fun
-//void ioopm_linked_list_apply_to_all(ioopm_list_t *list, ioopm_apply_int_function fun, void *extra);
+void ioopm_linked_list_apply_to_all(ioopm_list_t *list, ioopm_apply_int_function fun, void *extra);
+
+ioopm_list_t *create_list();
