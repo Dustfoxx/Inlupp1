@@ -1,14 +1,14 @@
 #pragma once
 #include <stdbool.h>
-
+#include <assert.h>
 
 typedef struct iter ioopm_list_iterator_t;
 typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 
-#define Success(v)      (list_index_t) { .success = true, .ptr = v };
-#define Failure()       (list_index_t) { .success = false };
-#define Successful(o)   (o.success == true)
-#define Unsuccessful(o) (o.success == false)
+#define List_success(v)      (list_index_t) { .success = true, .ptr = v };
+#define List_failure()       (list_index_t) { .success = false };
+#define List_successful(o)   (o.success == true)
+#define List_unsuccessful(o) (o.success == false)
 
 
 typedef bool (ioopm_int_predicate)(int key, void *extra);

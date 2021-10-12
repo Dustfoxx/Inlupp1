@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include "linked_list.h"
 
 #define Success(v)      (option_t) { .success = true, .value = v };
 #define Failure()       (option_t) { .success = false };
@@ -21,6 +22,10 @@
 
 typedef struct entry entry_t;
 typedef struct hash_table ioopm_hash_table_t;
+typedef struct option option_t;
+
+typedef bool (ioopm_predicate)(int key, char *value, void *extra);
+typedef void(*ioopm_apply_function)(int key, char *value, void *extra);
 
 struct entry
 {
@@ -32,10 +37,9 @@ struct entry
 struct hash_table
 {
   entry_t buckets[17];
-  int size;
+  size_t size;
 };
 
-typedef struct option option_t;
 struct option
 {
   bool success;
@@ -74,7 +78,7 @@ option_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key);
 /// @brief returns the number of key => value entries in the hash table
 /// @param h hash table operated upon
 /// @return the number of key => value entries in the hash table
-int ioopm_hash_table_size(ioopm_hash_table_t *ht);
+size_t ioopm_hash_table_size(ioopm_hash_table_t *ht);
 
 /// @brief checks if the hash table is empty
 /// @param h hash table operated upon
@@ -88,12 +92,17 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht);
 /// @brief return the keys for all entries in a hash map (in no particular order, but same as ioopm_hash_table_values)
 /// @param h hash table operated upon
 /// @return an array of keys for hash table h
-int *ioopm_hash_table_keys(ioopm_hash_table_t *ht);
+ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht);
 
 /// @brief return the values for all entries in a hash map (in no particular order, but same as ioopm_hash_table_keys)
 /// @param h hash table operated upon
 /// @return an array of values for hash table h
 char **ioopm_hash_table_values(ioopm_hash_table_t *ht);
+
+/// @brief clear the allocated space created when using ioopm_hash_table_values
+/// @param arg array being cleared
+/// @return nothing
+void clear_aloccated_char_array(char **arg);
 
 /// @brief check if a hash table has an entry with a given key
 /// @param h hash table operated upon
@@ -109,16 +118,16 @@ bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, char *value);
 /// @param h hash table operated upon
 /// @param pred the predicate
 /// @param arg extra argument to pred
-//bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg);
+bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg);
 
 /// @brief check if a predicate is satisfied by any entry in a hash table
 /// @param h hash table operated upon
 /// @param pred the predicate
 /// @param arg extra argument to pred
-//bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg);
+bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg);
 
 /// @brief apply a function to all entries in a hash table
 /// @param h hash table operated upon
 /// @param apply_fun the function to be applied to all elements
 /// @param arg extra argument to apply_fun
-//void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function apply_fun, void *arg);
+void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function apply_fun, void *arg);

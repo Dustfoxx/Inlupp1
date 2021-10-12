@@ -25,6 +25,7 @@ ioopm_list_t *ioopm_linked_list_create(void)
 
 void ioopm_linked_list_destroy(ioopm_list_t *list)
 {
+    assert(list);
     if(list->next) //If next pointer exists, recurse
         ioopm_linked_list_destroy(list->next);
     
@@ -33,10 +34,11 @@ void ioopm_linked_list_destroy(ioopm_list_t *list)
 
 void ioopm_linked_list_append(ioopm_list_t *list, int value)
 {
+    assert(list);
     ioopm_list_t *iterator_ptr = list;
-    while(iterator_ptr->next)
+    while(iterator_ptr->next != NULL)
         iterator_ptr = iterator_ptr->next;
-    iterator_ptr->next = malloc(sizeof(ioopm_list_t));
+    iterator_ptr->next = calloc(1, sizeof(ioopm_list_t));
     iterator_ptr->next->value = value;
 }
 
@@ -46,7 +48,7 @@ static void recurse_prepend(ioopm_list_t *list)
     if(list->next)
         recurse_prepend(list->next); //Goes to next if it exists
     else
-        list->next = malloc(sizeof(ioopm_list_t)); //Creates new space if none exists
+        list->next = calloc(1, sizeof(ioopm_list_t)); //Creates new space if none exists
     list->next->value = list->value;
 }
 
@@ -63,16 +65,16 @@ static list_index_t find_index(ioopm_list_t *list, int index)
         list = list->next;
     if(i == index)
     {
-        return Success(list);
+        return List_success(list);
     }
     else
-        return Failure();
+        return List_failure();
 }
 
 void ioopm_linked_list_insert(ioopm_list_t *list, int index, int value)
 {
     list_index_t chk_index = find_index(list, index);
-    if(Successful(chk_index))
+    if(List_successful(chk_index))
     {
         recurse_prepend(chk_index.ptr);
         chk_index.ptr->next->value = value;
@@ -85,7 +87,7 @@ int ioopm_linked_list_remove(ioopm_list_t *list, int index)
 { //Returns zero when wrong
     int return_val = 0;
     list_index_t chk_index = find_index(list, index);
-    if(Successful(chk_index))
+    if(List_successful(chk_index))
     {
         return_val = chk_index.ptr->next->value;
         if(chk_index.ptr->next->next)
@@ -110,7 +112,7 @@ int ioopm_linked_list_get(ioopm_list_t *list, int index)
 {
     list_index_t found_index = find_index(list, index);
 
-    if(Successful(found_index))
+    if(List_successful(found_index))
     {
         return found_index.ptr->next->value;
     }
@@ -194,6 +196,8 @@ ioopm_list_t *create_list()
     return list;
 }
 
+//-----------------------------------------------------------------------
+
 static void print_list(ioopm_list_t *list)
 {
     while(list)
@@ -203,7 +207,6 @@ static void print_list(ioopm_list_t *list)
     }
 }
 
-//-----------------------------------------------------------------------
 static void test_append()
 {
     ioopm_list_t *list = ioopm_linked_list_create();
@@ -314,14 +317,14 @@ static void test_apply()
 
 /*int main()
 {
-    //test_append();
-    //test_prepend();
-    //test_insert();
-    //test_remove();
-    //test_get();
-    //test_contain();
-    //test_size();
-    //test_clear();
+    test_append();
+    test_prepend();
+    test_insert();
+    test_remove();
+    test_get();
+    test_contain();
+    test_size();
+    test_clear();
     test_check();
     test_apply();
 }*/
