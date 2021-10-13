@@ -1,11 +1,7 @@
 #pragma once
 #include <stdbool.h>
 #include "linked_list.h"
-
-#define Success(v)      (option_t) { .success = true, .value = v };
-#define Failure()       (option_t) { .success = false };
-#define Successful(o)   (o.success == true)
-#define Unsuccessful(o) (o.success == false)
+#include "common.h"
 
 /**
  * @file hash_table.h
@@ -22,33 +18,30 @@
 
 typedef struct entry entry_t;
 typedef struct hash_table ioopm_hash_table_t;
-typedef struct option option_t;
 
-typedef bool (ioopm_predicate)(int key, char *value, void *extra);
-typedef void(*ioopm_apply_function)(int key, char *value, void *extra);
+typedef bool (ioopm_predicate)(elem_t key, elem_t value, void *extra);
+typedef void(*ioopm_apply_function)(elem_t key, elem_t value, void *extra);
+typedef int(*ioopm_hash_function)(elem_t key);
 
 struct entry
 {
-  int key;       // holds the key
-  char *value;   // holds the value
+  elem_t key;    // holds the key
+  elem_t value;  // holds the value
   entry_t *next; // points to the next entry (possibly NULL)
 };
 
 struct hash_table
 {
   entry_t buckets[17];
+  ioopm_hash_function hash_func;
+  ioopm_eq_function key_equiv_func;
+  ioopm_eq_function value_equiv_func;
   size_t size;
-};
-
-struct option
-{
-  bool success;
-  char *value;
 };
 
 /// @brief Create a new hash table
 /// @return A new empty hash table
-ioopm_hash_table_t *ioopm_hash_table_create();
+ioopm_hash_table_t *ioopm_hash_table_create(ioopm_hash_function hash, ioopm_eq_function key, ioopm_eq_function val);
 
 /// @brief Delete a hash table and free its memory
 /// @param ht a hash table to be deleted
@@ -58,22 +51,19 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht);
 /// @param ht hash table operated upon
 /// @param key key to insert
 /// @param value value to insert
-void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value);
+void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value);
 
 /// @brief lookup value for key in hash table ht
 /// @param ht hash table operated upon
 /// @param key key to lookup
-/// @return the value mapped to by key (FIXME: incomplete)
-option_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key);
+/// @return option_t containing wether operation was successful and key
+option_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key);
 
 /// @brief remove any mapping from key to a value
 /// @param ht hash table operated upon
 /// @param key key to remove
-/// @return the value mapped to by key (FIXME: incomplete)
-option_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key);
-
-
-
+/// @return option_t containing wether operation was successful and key
+option_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key);
 
 /// @brief returns the number of key => value entries in the hash table
 /// @param h hash table operated upon
@@ -91,18 +81,13 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht);
 
 /// @brief return the keys for all entries in a hash map (in no particular order, but same as ioopm_hash_table_values)
 /// @param h hash table operated upon
-/// @return an array of keys for hash table h
+/// @return a linked list of keys for hash table h
 ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht);
 
 /// @brief return the values for all entries in a hash map (in no particular order, but same as ioopm_hash_table_keys)
 /// @param h hash table operated upon
 /// @return an array of values for hash table h
-char **ioopm_hash_table_values(ioopm_hash_table_t *ht);
-
-/// @brief clear the allocated space created when using ioopm_hash_table_values
-/// @param arg array being cleared
-/// @return nothing
-void clear_aloccated_char_array(char **arg);
+ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht);
 
 /// @brief check if a hash table has an entry with a given key
 /// @param h hash table operated upon
