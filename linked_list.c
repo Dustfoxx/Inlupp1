@@ -60,22 +60,22 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, elem_t value)
     list->next->value = value;
 }
 
-static ioopm_list_iterator_t *find_index(ioopm_list_t *list, elem_t index)
+static ioopm_list_iterator_t *find_index(ioopm_list_t *list, int index)
 {
     ioopm_list_iterator_t *iter = ioopm_list_iterator(list);
-    bool loop_logic = true;
-    for(; loop_logic; ioopm_iterator_next(iter))
+    int i = 0;
+    for(; i < index; ioopm_iterator_next(iter), i++)
     {
-        if(list->list_eq(index, iter->current->value, NULL))
-            return iter;
         if(iter->next == NULL)
-            loop_logic = false;
+        {
+            ioopm_iterator_destroy(iter);
+            return NULL;
+        }
     }
-    ioopm_iterator_destroy(iter);
-    return NULL;
+    return iter;
 }
 
-void ioopm_linked_list_insert(ioopm_list_t *list, elem_t index, elem_t value)
+void ioopm_linked_list_insert(ioopm_list_t *list, int index, elem_t value)
 {
     ioopm_list_iterator_t *chk_index = find_index(list, index);
     if(chk_index)
@@ -88,7 +88,7 @@ void ioopm_linked_list_insert(ioopm_list_t *list, elem_t index, elem_t value)
     ioopm_iterator_destroy(chk_index);
 }
 
-elem_t ioopm_linked_list_remove(ioopm_list_t *list, elem_t index)
+elem_t ioopm_linked_list_remove(ioopm_list_t *list, int index)
 { //Returns zero when wrong
     elem_t return_val = (elem_t) {.int_value = 0, .uns_int = 0, .fl_value = 0, .pointer = NULL};
     ioopm_list_iterator_t *chk_index = find_index(list, index);
@@ -114,13 +114,13 @@ elem_t ioopm_linked_list_remove(ioopm_list_t *list, elem_t index)
     return return_val;
 }
 
-elem_t ioopm_linked_list_get(ioopm_list_t *list, elem_t index)
+elem_t ioopm_linked_list_get(ioopm_list_t *list, int index)
 {
     ioopm_list_iterator_t *found_index = find_index(list, index);
 
     if(found_index)
     {
-        elem_t temp = found_index->current->next->value;
+        elem_t temp = found_index->current->value;
         ioopm_iterator_destroy(found_index);
         return temp;
     }
@@ -130,13 +130,20 @@ elem_t ioopm_linked_list_get(ioopm_list_t *list, elem_t index)
 
 bool ioopm_linked_list_contains(ioopm_list_t *list, elem_t element)
 {
-    ioopm_list_iterator_t *temp = find_index(list, element);
-    if(temp)
+    ioopm_list_iterator_t *iter = ioopm_list_iterator(list);
+    for(; ; ioopm_iterator_next(iter))
     {
-        ioopm_iterator_destroy(temp);
-        return true;
+        if(list->list_eq(iter->current->value, element))
+        {
+            ioopm_iterator_destroy(iter);
+            return true;
+        }
+        else if(iter->next == NULL)
+        {
+            ioopm_iterator_destroy(iter);
+            return false;
+        }
     }
-    return false;
 }
 
 size_t ioopm_linked_list_size(ioopm_list_t *list)
@@ -194,7 +201,8 @@ void ioopm_linked_list_apply_to_all(ioopm_list_t *list, ioopm_apply_int_function
 
 void print_key(elem_t key, void *extra)
 {
-    printf("%d\n", key.int_value);
+    char *temp = extra;
+    printf("%d, %s\n", key.int_value, temp);
 }
 
 ioopm_list_t *create_list(ioopm_eq_function eq)
@@ -244,7 +252,7 @@ void ioopm_iterator_destroy(ioopm_list_iterator_t *iter)
 
 
 //-----------------------------------------------------------------------
-bool eq_int(elem_t a, elem_t b, void *extra)
+bool eq_int(elem_t a, elem_t b)
 {
     return a.int_value == b.int_value;
 }
@@ -284,9 +292,9 @@ static void test_insert()
 {
     ioopm_list_t *list = create_list(eq_int);
 
-    ioopm_linked_list_insert(list, (elem_t) {.int_value = 5}, (elem_t) {.int_value = 54});
-    ioopm_linked_list_insert(list, (elem_t) {.int_value = 14}, (elem_t) {.int_value = 546});
-    ioopm_linked_list_insert(list, (elem_t) {.int_value = 123123}, (elem_t) {.int_value = 123});
+    ioopm_linked_list_insert(list, 5, (elem_t) {.int_value = 54});
+    ioopm_linked_list_insert(list, 14, (elem_t) {.int_value = 546});
+    ioopm_linked_list_insert(list, 123123, (elem_t) {.int_value = 123});
     print_list(list);
     ioopm_linked_list_destroy(list);
 }
@@ -295,8 +303,8 @@ static void test_remove()
 {
     ioopm_list_t *list = create_list(eq_int);
 
-    ioopm_linked_list_remove(list, (elem_t) {.int_value = 5});
-    ioopm_linked_list_remove(list, (elem_t) {.int_value = 1414});
+    ioopm_linked_list_remove(list, 5);
+    ioopm_linked_list_remove(list, 1414);
     print_list(list);
     ioopm_linked_list_destroy(list);
 }
@@ -305,8 +313,8 @@ static void test_get()
 {
     ioopm_list_t *list = create_list(eq_int);
 
-    elem_t found_val = ioopm_linked_list_get(list, (elem_t) {.int_value = 5});
-    ioopm_linked_list_get(list, (elem_t) {.int_value = 1414});
+    elem_t found_val = ioopm_linked_list_get(list, 5);
+    ioopm_linked_list_get(list, 1414);
     printf("%d\n", found_val.int_value);
     ioopm_linked_list_destroy(list);
 }
@@ -361,7 +369,8 @@ static void test_apply()
 {
     ioopm_list_t *list = create_list(eq_int);
 
-    ioopm_linked_list_apply_to_all(list, print_key, (void *) {NULL});
+    char *temp = "This shows up";
+    ioopm_linked_list_apply_to_all(list, print_key, temp);
 
     ioopm_linked_list_destroy(list);
 }
@@ -386,17 +395,17 @@ static void test_iter()
 }
 
 
-/*int main()
+int main()
 {
     //test_append();
     //test_prepend();
-    //test_insert();
-    //test_remove();
-    //test_get();
-    test_contain();
-    test_size();
-    test_clear();
+    // test_insert();
+    // test_remove();
+    // test_get();
+    // test_contain();
+    // test_size();
+    // test_clear();
     test_check();
     test_apply();
-    test_iter();
-}*/
+    // test_iter();
+}

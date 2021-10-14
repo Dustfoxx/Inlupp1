@@ -6,7 +6,7 @@
 typedef struct elem elem_t;
 typedef struct option option_t;
 
-typedef bool(*ioopm_eq_function)(elem_t a, elem_t b, void *extra);
+typedef bool(*ioopm_eq_function)(elem_t a, elem_t b);
 
 #define Success(v)      (option_t) { .success = true, .value = v };
 #define Failure()       (option_t) { .success = false };

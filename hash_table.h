@@ -6,7 +6,7 @@
 /**
  * @file hash_table.h
  * @author Fox Hamrén, Henrik von Bahr
- * @date 1 Sep 2019
+ * @date 1 Sep 2021
  * @brief Simple hash table that maps integer keys to string values.
  *
  * Here typically goes a more extensive explanation of what the header
@@ -92,12 +92,12 @@ ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht);
 /// @brief check if a hash table has an entry with a given key
 /// @param h hash table operated upon
 /// @param key the key sought
-bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, int key);
+bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, elem_t key);
 
 /// @brief check if a hash table has an entry with a given value
 /// @param h hash table operated upon
 /// @param value the value sought
-bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, char *value);
+bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, elem_t value);
 
 /// @brief check if a predicate is satisfied by all entries in a hash table
 /// @param h hash table operated upon

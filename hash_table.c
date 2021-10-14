@@ -11,7 +11,7 @@ static entry_t *find_previous_entry_for_key(entry_t *bucket, elem_t key, ioopm_e
   entry_t *old_cursor = bucket;
   while (cursor != NULL)
     {
-      if (eq(cursor->key, key, NULL))
+      if (eq(cursor->key, key))
         {
           return old_cursor; /// Ends the whole function!
         }
@@ -26,12 +26,12 @@ int key_hash(elem_t a)
     return a.int_value;
 }
 
-bool cmp_int(elem_t a, elem_t b, void *extra)
+bool cmp_int(elem_t a, elem_t b)
 {
     return a.int_value == b.int_value;
 }
 
-bool cmp_str(elem_t a, elem_t b, void *extra)
+bool cmp_str(elem_t a, elem_t b)
 {
     return strcmp((char *) a.pointer, (char *) b.pointer);
 }
@@ -72,7 +72,7 @@ option_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key)
   entry_t *tmp = find_previous_entry_for_key(&ht->buckets[ht->hash_func(key) % No_Buckets], key, ht->key_equiv_func);
   entry_t *next = tmp->next;
 
-  if (next && ht->key_equiv_func(next->key, key, NULL))
+  if (next && ht->key_equiv_func(next->key, key))
   {
     return Success(next->value);
   }
@@ -104,7 +104,7 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value)
   entry_t *next = entry->next;
 
   /// Check if the next entry should be updated or not
-  if (next != NULL && ht->key_equiv_func(next->key, key, NULL))
+  if (next != NULL && ht->key_equiv_func(next->key, key))
     {
       next->value = value;
     }
@@ -121,7 +121,7 @@ option_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key)
   entry_t *replacing_ptr;
   elem_t removed_val;
   
-  if(prev_ptr->next && ht->key_equiv_func(prev_ptr->next->key, key, NULL))//If next value exists (Entry 1)
+  if(prev_ptr->next && ht->key_equiv_func(prev_ptr->next->key, key))//If next value exists (Entry 1)
   {
     removed_val = prev_ptr->next->value; //Save value to be removed
       if(prev_ptr->next->next)//If entry exists two steps forward (Entry 2)
@@ -219,24 +219,25 @@ ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht)
 
 static bool key_equiv(elem_t key, elem_t value_ignored, void *x)
 {
-  int *other_key_ptr = x;
-  int other_key = *other_key_ptr;
-  return key.int_value == other_key;
+  elem_t *other_key_ptr = x;
+  elem_t other_key = *other_key_ptr;
+  return key.int_value == other_key.int_value;
 }
 
 static bool value_equiv(elem_t key_ignored, elem_t value, void *x)
 {
-  return !strcmp((char *) value.pointer, x);
+  elem_t *other_pointer = x;
+  return !strcmp((char *) value.pointer, (char *) other_pointer->pointer);
 }
 
-bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, int key)
+bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, elem_t key)
 {
-    return ioopm_hash_table_any(ht, ht->key_equiv_func, &key);
+    return ioopm_hash_table_any(ht, key_equiv, &key);
 }
 
-bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, char *value)
+bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, elem_t value)
 {
-    return ioopm_hash_table_any(ht, ht->value_equiv_func, value);
+    return ioopm_hash_table_any(ht, value_equiv, &value);
 }
 
 bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *arg)
@@ -247,8 +248,7 @@ bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_predicate pred, void *ar
     bool result = true;
     for (size_t i = 0; i < size && result; ++i)
       {
-        elem_t index = (elem_t) {.int_value = i};
-        result = result && pred(ioopm_linked_list_get(keys, index), ioopm_linked_list_get(keys, index), arg);
+        result = result && pred(ioopm_linked_list_get(keys, i), ioopm_linked_list_get(values, i), arg);
       }
     ioopm_linked_list_destroy(values);
     ioopm_linked_list_destroy(keys);
@@ -263,8 +263,7 @@ bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_predicate pred, void *ar
     bool result = false;
     for (size_t i = 0; i < size && !result; ++i)
       {
-        elem_t index = (elem_t) {.int_value = i};
-        result = pred(ioopm_linked_list_get(keys, index), ioopm_linked_list_get(keys, index), arg);
+        result = pred(ioopm_linked_list_get(keys, i), ioopm_linked_list_get(values, i), arg);
       }
     ioopm_linked_list_destroy(values);
     ioopm_linked_list_destroy(keys);
@@ -278,8 +277,7 @@ void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function 
     ioopm_list_t *values = ioopm_hash_table_values(ht);
     for (size_t i = 0; i < size; ++i)
       {
-        elem_t index = (elem_t) {.int_value = i};
-        apply_fun(ioopm_linked_list_get(keys, index), ioopm_linked_list_get(keys, index), arg);
+        apply_fun(ioopm_linked_list_get(keys, i), ioopm_linked_list_get(values, i), arg);
       }
     ioopm_linked_list_destroy(values);
     ioopm_linked_list_destroy(keys);
@@ -411,7 +409,7 @@ static void test_value_list()
 {
     ioopm_hash_table_t *test = create_large_table();
     ioopm_list_t *happy = ioopm_hash_table_values(test);
-    if((char *) ioopm_linked_list_get(happy, (elem_t) {.int_value = 12}).pointer && (char *) ioopm_linked_list_get(happy, (elem_t) {.int_value = 23}).pointer && (char *) ioopm_linked_list_get(happy, (elem_t) {.int_value = 45}).pointer)
+    if((char *) ioopm_linked_list_get(happy, 12).pointer && (char *) ioopm_linked_list_get(happy, 23).pointer && (char *) ioopm_linked_list_get(happy, 45).pointer)
         puts("Valid ptrs");
     else
         puts("Failed");
@@ -423,7 +421,7 @@ static void test_key_list()
 {
     ioopm_hash_table_t *test = create_large_table();
     ioopm_list_t *happy = ioopm_hash_table_keys(test);
-    if(ioopm_linked_list_get(happy, (elem_t) {.int_value = 3}).int_value == 35 && ioopm_linked_list_get(happy, (elem_t) {.int_value = 21}).int_value == 41 && ioopm_linked_list_get(happy, (elem_t) {.int_value = 49}).int_value == 16)
+    if(ioopm_linked_list_get(happy, 3).int_value == 35 && ioopm_linked_list_get(happy, 21).int_value == 41 && ioopm_linked_list_get(happy, 49).int_value == 16)
         puts("Valid keys");
     else
         puts("Failed");
@@ -434,7 +432,7 @@ static void test_key_list()
 static void test_has_key()
 {
     ioopm_hash_table_t *ht = create_large_table();
-    if(ioopm_hash_table_has_key(ht, 12) && !ioopm_hash_table_has_key(ht, 51))
+    if(ioopm_hash_table_has_key(ht, (elem_t) {.int_value = 12}) && !ioopm_hash_table_has_key(ht, (elem_t) {.int_value = 51}))
         puts("Has key works");
     else
         puts("Failed key search");
@@ -444,7 +442,7 @@ static void test_has_key()
 static void test_has_value()
 {
     ioopm_hash_table_t *ht = create_large_table();
-    if(ioopm_hash_table_has_value(ht, "Value") && !ioopm_hash_table_has_value(ht, "51"))
+    if(ioopm_hash_table_has_value(ht, (elem_t) {.pointer = "Value"}) && !ioopm_hash_table_has_value(ht, (elem_t) {.pointer = "51"}))
         puts("Has value works");
     else
         puts("Failed value search");
@@ -454,7 +452,9 @@ static void test_has_value()
 static void test_all_values()
 {
     ioopm_hash_table_t *ht = create_large_table();
-    if(ioopm_hash_table_all(ht, value_equiv, "Value") && !ioopm_hash_table_all(ht, value_equiv, "Valuedasd"))
+    elem_t test1 = {.pointer = "Value"};
+    elem_t test2 = {.pointer = "aavasv"};
+    if(ioopm_hash_table_all(ht, value_equiv, &test1) && !ioopm_hash_table_all(ht, value_equiv, &test2))
         puts("All works");
     else
         puts("Failed all");
@@ -478,10 +478,10 @@ int main()
   // test_remove();
   // test_size();
   // test_clear();
-  test_value_list();
-  test_key_list();
-  test_has_key();
-  test_has_value();
-  test_all_values();
+  //test_value_list();
+  //test_key_list();
+  //test_has_key();
+  //test_has_value();
+  //test_all_values();
   test_apply_to_all();
 }
