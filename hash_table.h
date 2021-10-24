@@ -36,17 +36,28 @@ struct hash_table
   ioopm_hash_function hash_func;
   ioopm_eq_function key_equiv_func;
   ioopm_eq_function value_equiv_func;
+  float load_factor;
+  int num_buckets;
   size_t size;
 };
 
+//TODO: Lägg till så att ingen funktion använder No_buckets
+
+//TODO: lägg till fast storlek på start och load-factor
 /// @brief Create a new hash table
 /// @return A new empty hash table
 ioopm_hash_table_t *ioopm_hash_table_create(ioopm_hash_function hash, ioopm_eq_function key, ioopm_eq_function val);
+
+//TODO: lägg till egenvald storlek och load_factor
+/// @brief Create a new hash table
+/// @return A new empty hash table
+ioopm_hash_table_t *ioopm_hash_table_create_advanced(ioopm_hash_function hash, ioopm_eq_function key, ioopm_eq_function val, float load_factor, int init_size);
 
 /// @brief Delete a hash table and free its memory
 /// @param ht a hash table to be deleted
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht);
 
+//TODO: Lägger till load_factor check
 /// @brief add key => value entry in hash table ht
 /// @param ht hash table operated upon
 /// @param key key to insert

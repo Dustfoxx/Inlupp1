@@ -55,6 +55,12 @@ static void recurse_destroy(entry_t *chosen)
     free(chosen); //After recursion free current pointer
 }
 
+//When loadfactor is reached, run to change values in buckets
+static void rehash_buckets(ioopm_hash_table_t *ht)
+{
+
+}
+
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
 {
     for(size_t i = 0; i <  No_Buckets; i++)
