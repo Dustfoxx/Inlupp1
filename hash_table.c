@@ -3,7 +3,7 @@
 #include <string.h>
 #include "hash_table.h"
 
-#define No_Buckets 17
+#define start_buckets 17
 
 static entry_t *find_previous_entry_for_key(entry_t *bucket, elem_t key, ioopm_eq_function eq)
 {
@@ -36,15 +36,50 @@ bool cmp_str(elem_t a, elem_t b)
     return strcmp((char *) a.pointer, (char *) b.pointer);
 }
 
-ioopm_hash_table_t *ioopm_hash_table_create(ioopm_hash_function hash, ioopm_eq_function key_func, ioopm_eq_function val_func)
+ioopm_hash_table_t *ioopm_hash_table_create()
 {
-    /// Allocate space for a ioopm_hash_table_t = 17 pointers to
-    /// entry_t's, which will be set to NULL
     ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
+    result->buckets = calloc(start_buckets, sizeof(entry_t));
+    result->hash_func = key_hash;
+    result->key_equiv_func = cmp_int;
+    result->value_equiv_func = cmp_str;
+    result->num_buckets = start_buckets;
+    result->load_factor = 0.75;
+    return result;
+}
+
+ioopm_hash_table_t *ioopm_hash_table_create_advanced(ioopm_hash_function hash, 
+                                            ioopm_eq_function key_func, 
+                                            ioopm_eq_function val_func,
+                                            float load_factor,
+                                            int init_size)
+{
+    ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
+    result->buckets = calloc(17, sizeof(entry_t));
     result->hash_func = hash;
     result->key_equiv_func = key_func;
     result->value_equiv_func = val_func;
+    result->num_buckets = init_size;
+    result->load_factor = load_factor;
     return result;
+}
+
+//When loadfactor is reached, run to change values in buckets
+static void rehash_buckets(ioopm_hash_table_t *ht)
+{
+    ioopm_list_t *keys = ioopm_hash_table_keys(ht);
+    ioopm_list_t *values = ioopm_hash_table_values(ht);
+    int table_size = ht->size;
+    ioopm_hash_table_clear(ht);
+    ht->num_buckets = ht->num_buckets*2;
+    free(ht->buckets);
+    ht->buckets = calloc(ht->num_buckets, sizeof(entry_t));
+    for(int i = 0; i < table_size; i++)
+    {
+        ioopm_hash_table_insert(ht, ioopm_linked_list_get(keys, i), ioopm_linked_list_get(values, i));
+    }
+    ioopm_linked_list_destroy(keys);
+    ioopm_linked_list_destroy(values);
 }
 
 static void recurse_destroy(entry_t *chosen)
@@ -55,27 +90,22 @@ static void recurse_destroy(entry_t *chosen)
     free(chosen); //After recursion free current pointer
 }
 
-//When loadfactor is reached, run to change values in buckets
-static void rehash_buckets(ioopm_hash_table_t *ht)
-{
-
-}
-
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
 {
-    for(size_t i = 0; i <  No_Buckets; i++)
+    for(size_t i = 0; i <  ht->num_buckets; i++)
     {
       entry_t *ptr = ht->buckets[i].next; //Gets next pointer
       if(ptr) 
         recurse_destroy(ptr); //Sends next pointer if not null
     }
+    free(ht->buckets);
     free(ht);
 }
 
 option_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key)
 {
   /// Find the previous entry for key
-  entry_t *tmp = find_previous_entry_for_key(&ht->buckets[ht->hash_func(key) % No_Buckets], key, ht->key_equiv_func);
+  entry_t *tmp = find_previous_entry_for_key(&ht->buckets[ht->hash_func(key) % ht->num_buckets], key, ht->key_equiv_func);
   entry_t *next = tmp->next;
 
   if (next && ht->key_equiv_func(next->key, key))
@@ -104,7 +134,7 @@ static entry_t *entry_create(elem_t key, elem_t value, entry_t *entry)
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value)
 {
   /// Calculate the bucket for this entry
-  size_t bucket = abs(ht->hash_func(key) % No_Buckets);
+  size_t bucket = abs(ht->hash_func(key) % ht->num_buckets);
   /// Search for an existing entry for a key
   entry_t *entry = find_previous_entry_for_key(&ht->buckets[bucket], key, ht->key_equiv_func);
   entry_t *next = entry->next;
@@ -119,11 +149,16 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value)
       entry->next = entry_create(key, value, next);
       ht->size += 1;
     }
+  
+  if((float)ht->size/(float)ht->num_buckets > ht->load_factor)
+  {
+      rehash_buckets(ht);
+  }
 }
 
 option_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key)
 {
-  entry_t *prev_ptr = find_previous_entry_for_key(&ht->buckets[ht->hash_func(key) % No_Buckets], key, ht->key_equiv_func);
+  entry_t *prev_ptr = find_previous_entry_for_key(&ht->buckets[ht->hash_func(key) % ht->num_buckets], key, ht->key_equiv_func);
   entry_t *replacing_ptr;
   elem_t removed_val;
   
@@ -160,7 +195,7 @@ bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht)
 
 void ioopm_hash_table_clear(ioopm_hash_table_t *ht)
 {
-  for(size_t i = 0; i < No_Buckets; i++)
+  for(size_t i = 0; i < ht->num_buckets; i++)
     {
       entry_t *ptr = ht->buckets[i].next; //Gets next pointer
       entry_t *new_ptr;
@@ -177,8 +212,8 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *ht)
 
 ioopm_hash_table_t *create_large_table()
 {
-  ioopm_hash_table_t *ht = ioopm_hash_table_create(key_hash, cmp_int, cmp_str);
-  for(size_t i = 0; i < 50; i++)
+  ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  for(int i = 0; i < 50; i++)
     {
       ioopm_hash_table_insert(ht, (elem_t) {.int_value = i}, (elem_t) {.pointer = (char *) {"Value"}});
     }
@@ -189,7 +224,7 @@ ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht)
 {
     ioopm_list_t *list = ioopm_linked_list_create(ht->key_equiv_func);
     size_t p = 0;
-    for(size_t i = 0; i < No_Buckets; i++) //TODO: Denna typ av loop sker ofta
+    for(size_t i = 0; i < ht->num_buckets; i++) //TODO: Denna typ av loop sker ofta
     //Försök komma på sätt att bryta ut
     {
         entry_t *ptr = ht->buckets[i].next;
@@ -208,7 +243,7 @@ ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht)
 {
     ioopm_list_t *returned_vals = ioopm_linked_list_create(ht->value_equiv_func);
     size_t p = 0;
-    for(size_t i = 0; i < No_Buckets; i++) //Denna typ av loop sker ofta
+    for(size_t i = 0; i < ht->num_buckets; i++) //Denna typ av loop sker ofta
     //Försök komma på sätt att bryta ut
     {
         entry_t *ptr = ht->buckets[i].next; 
@@ -307,7 +342,7 @@ static void check_modulo(elem_t key, elem_t value, void *arg)
 
 static void test_create_destroy()
 {
-   ioopm_hash_table_t *ht = ioopm_hash_table_create(key_hash, cmp_int, cmp_str);
+   ioopm_hash_table_t *ht = ioopm_hash_table_create();
    if(ht)
    {
         ioopm_hash_table_destroy(ht);
@@ -321,7 +356,7 @@ static void test_create_destroy()
 
 static void test_lookup1()
 {
-      ioopm_hash_table_t *ht = ioopm_hash_table_create(key_hash, cmp_int, cmp_str);
+      ioopm_hash_table_t *ht = ioopm_hash_table_create();
       ioopm_hash_table_insert(ht, (elem_t) {.int_value = 0}, (elem_t) {.pointer = "testing\n"});
       ioopm_hash_table_insert(ht, (elem_t) {.int_value = 6}, (elem_t) {.pointer = "testingwww\n"});
       ioopm_hash_table_insert(ht, (elem_t) {.int_value = 23}, (elem_t) {.pointer = "testingwww\n"});
@@ -343,7 +378,7 @@ static void test_lookup1()
 
 static void test_lookup2()
 {
-    ioopm_hash_table_t *test = ioopm_hash_table_create(key_hash, cmp_int, cmp_str);
+    ioopm_hash_table_t *test = ioopm_hash_table_create();
     for (int i = 0; i < 18; i++)
     {
         if(ioopm_hash_table_lookup(test, (elem_t) {.int_value = i}).success)
@@ -365,7 +400,7 @@ static void test_lookup2()
 
 static void test_insert()
 {
-    ioopm_hash_table_t *test = ioopm_hash_table_create(key_hash, cmp_int, cmp_str);
+    ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 5}, (elem_t) {.pointer = "test"});
     if(test->buckets[5].next)
         printf("Found string: %s\n", (char *) test->buckets[5].next->value.pointer);
@@ -475,19 +510,26 @@ static void test_apply_to_all()
     ioopm_hash_table_destroy(ht);
 }
 
-int main()
+static void test_rehash()
 {
-  // test_create_destroy();
-  // test_lookup1();
-  // test_lookup2();
-  // test_insert();
-  // test_remove();
-  // test_size();
-  // test_clear();
-  //test_value_list();
-  //test_key_list();
-  //test_has_key();
-  //test_has_value();
-  //test_all_values();
-  test_apply_to_all();
+    ioopm_hash_table_t *ht = create_large_table();
+    printf("%d\n", ht->num_buckets);
 }
+
+/*int main()
+{
+  test_create_destroy();
+  test_lookup1();
+  test_lookup2();
+  test_insert();
+  test_remove();
+  test_size();
+  test_clear();
+  test_value_list();
+  test_key_list();
+  test_has_key();
+  test_has_value();
+  test_all_values();
+  test_apply_to_all();
+  test_rehash();
+}*/

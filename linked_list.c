@@ -395,7 +395,7 @@ static void test_iter()
 }
 
 
-int main()
+/*int main()
 {
     //test_append();
     //test_prepend();
@@ -408,4 +408,4 @@ int main()
     test_check();
     test_apply();
     // test_iter();
-}
+}*/

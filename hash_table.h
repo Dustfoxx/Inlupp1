@@ -32,7 +32,7 @@ struct entry
 
 struct hash_table
 {
-  entry_t buckets[17];
+  entry_t *buckets;
   ioopm_hash_function hash_func;
   ioopm_eq_function key_equiv_func;
   ioopm_eq_function value_equiv_func;
@@ -41,14 +41,11 @@ struct hash_table
   size_t size;
 };
 
-//TODO: Lägg till så att ingen funktion använder No_buckets
-
-//TODO: lägg till fast storlek på start och load-factor
-/// @brief Create a new hash table
+/// @brief Create a new hash table with preset load_factor, size and comparisonfunctions
+/// Meant for a standard table with int keys and string values
 /// @return A new empty hash table
-ioopm_hash_table_t *ioopm_hash_table_create(ioopm_hash_function hash, ioopm_eq_function key, ioopm_eq_function val);
+ioopm_hash_table_t *ioopm_hash_table_create();
 
-//TODO: lägg till egenvald storlek och load_factor
 /// @brief Create a new hash table
 /// @return A new empty hash table
 ioopm_hash_table_t *ioopm_hash_table_create_advanced(ioopm_hash_function hash, ioopm_eq_function key, ioopm_eq_function val, float load_factor, int init_size);

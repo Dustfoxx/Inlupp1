@@ -89,7 +89,7 @@ void destroy_word_hash(ioopm_hash_table_t *ht)
 
 int main(int argc, char *argv[])
 {
-  ioopm_hash_table_t *ht = ioopm_hash_table_create((ioopm_hash_function) string_sum_hash, string_eq, NULL);
+  ioopm_hash_table_t *ht = ioopm_hash_table_create_advanced((ioopm_hash_function) string_sum_hash, string_eq, NULL, 0.75, 17);
 
   if (argc > 1)
   {
