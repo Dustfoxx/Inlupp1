@@ -54,7 +54,6 @@ ioopm_hash_table_t *ioopm_hash_table_create_advanced(ioopm_hash_function hash, i
 /// @param ht a hash table to be deleted
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht);
 
-//TODO: Lägger till load_factor check
 /// @brief add key => value entry in hash table ht
 /// @param ht hash table operated upon
 /// @param key key to insert

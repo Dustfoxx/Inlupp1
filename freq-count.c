@@ -68,7 +68,7 @@ int string_sum_hash(elem_t e)
       result += *str;
     }
   while (*++str != '\0');
-  return result;
+  return abs(result);
 }
 
 bool string_eq(elem_t e1, elem_t e2)

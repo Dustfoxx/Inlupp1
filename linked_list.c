@@ -2,6 +2,8 @@
 #include "linked_list.h"
 #include "common.h"
 
+int global = 0;
+
 ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list)
 {
     ioopm_list_iterator_t *iter = calloc(1, sizeof(ioopm_list_iterator_t));
