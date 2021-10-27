@@ -2,7 +2,19 @@
 #include "linked_list.h"
 #include "common.h"
 
-int global = 0;
+struct iter
+{
+    struct list *current;
+    struct list *next;
+    struct list *first;
+};
+
+struct list
+{
+    elem_t value;
+    struct list *next;
+    ioopm_eq_function list_eq;
+};
 
 ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list)
 {
