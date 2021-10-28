@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 
     for(int i = 0; i < size; i++)
       {
-        keys[i] = (char *) iter->current->value.pointer;
+        keys[i] = (char *) ioopm_iterator_current(iter).pointer;
         ioopm_iterator_next(iter);
       }
     ioopm_iterator_destroy(iter);
