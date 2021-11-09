@@ -167,7 +167,7 @@ static bool cmp_str_all(elem_t ignored, elem_t a, void *b)
 static void test_all_values()
 {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  //elem_t key = {.int_value = 10};
+  elem_t key = {.int_value = 10};
   elem_t value = {.pointer = "Hejsan"};
   ioopm_hash_table_insert(ht, (elem_t) {.int_value = 10}, (elem_t) {.pointer = "Hejsan"});
   CU_ASSERT_TRUE(ioopm_hash_table_all(ht, cmp_str_all, &value));
@@ -227,6 +227,18 @@ static void test_linked_list_prepend()
   ioopm_linked_list_destroy(list);
 }
 
+static void test_linked_list_get()
+{
+  ioopm_list_t *list = ioopm_linked_list_create(eq_int_test);
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 4});
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 7});
+  elem_t value1 = ioopm_linked_list_get(list, 0);
+  elem_t value2 = ioopm_linked_list_get(list, 1);
+  CU_ASSERT_EQUAL(value1.int_value, 4);
+  CU_ASSERT_EQUAL(value2.int_value, 7);
+  ioopm_linked_list_destroy(list);
+}
+
 static void test_linked_list_insert()
 {
     ioopm_list_t *list = create_list(eq_int_test);
@@ -238,17 +250,111 @@ static void test_linked_list_insert()
     ioopm_linked_list_append(list,(elem_t) {.int_value = 5});
     ioopm_linked_list_append(list,(elem_t) {.int_value = 6});
 
-    CU_ASSERT_TRUE(ioopm_linked_list_insert(list, 5, (elem_t) {.int_value = 54}));
-    CU_ASSERT_FALSE(ioopm_linked_list_insert(list, 14, (elem_t) {.int_value = 546}));
-    CU_ASSERT_FALSE(ioopm_linked_list_insert(list, -123123, (elem_t) {.int_value = 123}));
+    CU_ASSERT_TRUE(ioopm_linked_list_insert(list, 4, (elem_t) {.int_value = 54}));
+    CU_ASSERT_TRUE(ioopm_linked_list_insert(list, 14, (elem_t) {.int_value = 546}));
+    CU_ASSERT_FALSE(ioopm_linked_list_insert(list, 123, (elem_t) {.int_value = 123}));
+
+    elem_t value1 = ioopm_linked_list_get(list, 4);
+    elem_t value2 = ioopm_linked_list_get(list, 14);
     
-    CU_ASSERT_EQUAL(ioopm_linked_list_get(list, 5).int_value, 54);
-    /* CU_ASSERT_EQUAL(,54);
-    CU_ASSERT_EQUAL(,546);
-    CU_ASSERT_EQUAL(,123); */
+    CU_ASSERT_EQUAL(value1.int_value, 54);
+    CU_ASSERT_EQUAL(value2.int_value, 546);
+
     ioopm_linked_list_destroy(list);
 }
 
+static void test_linked_list_remove()
+{
+  ioopm_list_t *list = ioopm_linked_list_create(eq_int_test);
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 4});
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 7});
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 10});
+  elem_t value1 = ioopm_linked_list_get(list, 0);
+  elem_t value2 = ioopm_linked_list_get(list, 1);
+
+  CU_ASSERT_EQUAL(value1.int_value, 4);
+  CU_ASSERT_EQUAL(value2.int_value, 7);
+
+  elem_t value1_removed = ioopm_linked_list_remove(list, 0);
+  elem_t value2_removed = ioopm_linked_list_remove(list, 0);
+
+  printf("Removed_value1: %d, Removed_value2: %d", value1_removed.int_value, value2_removed.int_value);
+
+  CU_ASSERT_EQUAL(value1_removed.int_value, 4);
+  CU_ASSERT_EQUAL(value2_removed.int_value, 7);
+  
+  elem_t new_value1 = ioopm_linked_list_get(list, 0);
+  elem_t new_value2 = ioopm_linked_list_get(list, 1);
+
+  CU_ASSERT_EQUAL(new_value1.int_value, 10);
+  CU_ASSERT_NOT_EQUAL(new_value2.int_value, 100);
+
+  ioopm_linked_list_destroy(list);
+}
+
+static void test_linked_list_contains()
+{
+  ioopm_list_t *list = create_list(eq_int_test);
+
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 10});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 20});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 30});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 40});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 50});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 69});
+
+  elem_t value1;
+  value1.int_value = 50;
+
+  elem_t value2;
+  value2.int_value = 500;
+
+  CU_ASSERT_TRUE(ioopm_linked_list_contains(list, value1));
+
+  CU_ASSERT_FALSE(ioopm_linked_list_contains(list, value2));
+
+  ioopm_linked_list_destroy(list);
+
+}
+
+static void test_linked_list_size()
+{
+  ioopm_list_t *list = create_list(eq_int_test);
+
+  elem_t value1;
+  value1.int_value = 5;
+
+  ioopm_linked_list_append(list, value1);
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 20});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 30});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 40});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 50});
+  ioopm_linked_list_append(list,(elem_t) {.int_value = 69});
+
+  size_t size = ioopm_linked_list_size(list);
+
+  printf("Size: %d", size);
+
+  CU_ASSERT_EQUAL(size, 1);
+
+  ioopm_linked_list_destroy(list);
+}
+
+static void test_linked_list_is_empty()
+{
+  ioopm_list_t *list = create_list(eq_int_test);
+
+  CU_ASSERT_TRUE(ioopm_linked_list_is_empty(list))
+
+  elem_t value1;
+  value1.int_value = 5;
+
+  ioopm_linked_list_append(list, value1);
+
+  CU_ASSERT_FALSE(ioopm_linked_list_is_empty(list));
+
+  ioopm_linked_list_destroy(list);
+}
 
 
 int init_suite(void)
@@ -291,7 +397,12 @@ int main()
     //(NULL == CU_add_test(test_suite, "Test hash_table apply_to_all", test_ioopm_hash_table_apply_to_all)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list append", test_linked_list_append)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list prepend", test_linked_list_prepend)) ||
-    (NULL == CU_add_test(test_suite, "Test linked_list insert", test_linked_list_insert))
+    (NULL == CU_add_test(test_suite, "Test linked_list get", test_linked_list_get)) ||
+    (NULL == CU_add_test(test_suite, "Test linked_list insert", test_linked_list_insert)) ||
+    (NULL == CU_add_test(test_suite, "Test linked_list remove", test_linked_list_remove))
+    (NULL == CU_add_test(test_suite, "Test linked_list contains", test_linked_list_contains)) ||
+    (NULL == CU_add_test(test_suite, "Test linked_list size", test_linked_list_size)) ||
+    (NULL == CU_add_test(test_suite, "Test linked_list is_empty", test_linked_list_is_empty))
   )
   {
     CU_cleanup_registry();

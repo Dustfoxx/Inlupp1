@@ -7,11 +7,12 @@
  * @file hash_table.h
  * @author Fox Hamrén, Henrik von Bahr
  * @date 1 Sep 2021
- * @brief Simple hash table that maps integer keys to string values.
+ * @brief Simple hash table that maps elem_t keys to elem_t values.
  *
- * Here typically goes a more extensive explanation of what the header
- * defines. Doxygens tags are words preceeded by either a backslash @\
- * or by an at symbol @@.
+ * Header defines all functions needed to modify the hashtable
+ * Some functions need their own defined functions according to the typedefs below
+ * One typedef is found in common.h as the function is shared with
+ * linked_list.h
  *
  * @see $CANVAS_OBJECT_REFERENCE$/assignments/gf5efa1610dfd73b58fef071f6c1d7a90
  */
@@ -19,34 +20,17 @@
 typedef struct entry entry_t;
 typedef struct hash_table ioopm_hash_table_t;
 
-typedef bool (ioopm_predicate)(elem_t key, elem_t value, void *extra);
-typedef void(*ioopm_apply_function)(elem_t key, elem_t value, void *extra);
-typedef int(*ioopm_hash_function)(elem_t key);
+typedef bool (ioopm_predicate)(elem_t key, elem_t value, void *extra);      //Template for "any" and "all" functions
+typedef void(*ioopm_apply_function)(elem_t key, elem_t value, void *extra); //Template for "apply" function
+typedef int(*ioopm_hash_function)(elem_t key);                              //Template for key hash function
 
-struct entry
-{
-  elem_t key;    // holds the key
-  elem_t value;  // holds the value
-  entry_t *next; // points to the next entry (possibly NULL)
-};
-
-struct hash_table
-{
-  entry_t *buckets;
-  ioopm_hash_function hash_func;
-  ioopm_eq_function key_equiv_func;
-  ioopm_eq_function value_equiv_func;
-  float load_factor;
-  int num_buckets;
-  size_t size;
-};
 
 /// @brief Create a new hash table with preset load_factor, size and comparisonfunctions
 /// Meant for a standard table with int keys and string values
 /// @return A new empty hash table
 ioopm_hash_table_t *ioopm_hash_table_create();
 
-/// @brief Create a new hash table
+/// @brief Create a new hash table with custom settings for key and value as well as loadfactor and initial buckets
 /// @return A new empty hash table
 ioopm_hash_table_t *ioopm_hash_table_create_advanced(ioopm_hash_function hash, ioopm_eq_function key, ioopm_eq_function val, float load_factor, int init_size);
 
@@ -63,13 +47,13 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value);
 /// @brief lookup value for key in hash table ht
 /// @param ht hash table operated upon
 /// @param key key to lookup
-/// @return option_t containing wether operation was successful and key
+/// @return option_t containing whether operation was successful and value
 option_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key);
 
 /// @brief remove any mapping from key to a value
 /// @param ht hash table operated upon
 /// @param key key to remove
-/// @return option_t containing wether operation was successful and key
+/// @return option_t containing whether operation was successful and value
 option_t ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key);
 
 /// @brief returns the number of key => value entries in the hash table

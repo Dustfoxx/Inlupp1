@@ -2247,4 +2247,8 @@ facility: www.gutenberg.org
 This Web site includes information about Project Gutenberg-tm,
 including how to make donations to the Project Gutenberg Literary
 Archive Foundation, how to help produce our new eBooks, and how to
+<<<<<<< HEAD
 subscribe to our email newsletter to hear about new eBooks.
+=======
+subscribe to our email newsletter to hear about new eBooks.
+>>>>>>> e29041e6c613775fff6d22ad4ad49326f26e5296
