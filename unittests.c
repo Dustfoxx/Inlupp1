@@ -34,10 +34,11 @@ static void test_insert1()
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 5}, (elem_t) {.pointer = "Vad"});
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 8}, (elem_t) {.pointer = "Heter"});
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 15}, (elem_t) {.pointer = "Du"});
-    CU_ASSERT_STRING_EQUAL(test->buckets[2].next->value.pointer, "Hej");
-    CU_ASSERT_STRING_EQUAL(test->buckets[5].next->value.pointer, "Vad");
-    CU_ASSERT_STRING_EQUAL(test->buckets[8].next->value.pointer, "Heter");
-    CU_ASSERT_STRING_EQUAL(test->buckets[15].next->value.pointer, "Du");
+
+    CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 2}).value.pointer, "Hej");
+    CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 5}).value.pointer, "Vad");
+    CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 8}).value.pointer, "Heter");
+    CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 15}).value.pointer, "Du");
     ioopm_hash_table_destroy(test);
 }
 
@@ -45,7 +46,7 @@ static void test_insert2()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 20}, (elem_t) {.pointer = "Woohoo"});
-    CU_ASSERT_STRING_EQUAL((char *) test->buckets[3].next->value.pointer, "Woohoo");
+    CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 20}).value.pointer, "Woohoo");
     ioopm_hash_table_destroy(test);
 }
 
@@ -53,7 +54,7 @@ static void test_insert3()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = -5}, (elem_t) {.pointer = "Woohoo"}); //Kollar edge-case ifall input-key är negativ. Denna görs om till positiv i insert, därför kollar vi i bucket 5 på raden nedan
-    CU_ASSERT_STRING_EQUAL((char *) test->buckets[5].next->value.pointer, "Woohoo");
+    CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = -5}).value.pointer, "Woohoo");
     ioopm_hash_table_destroy(test);
 }
 
@@ -169,7 +170,7 @@ static void test_all_values()
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
   elem_t key = {.int_value = 10};
   elem_t value = {.pointer = "Hejsan"};
-  ioopm_hash_table_insert(ht, (elem_t) {.int_value = 10}, (elem_t) {.pointer = "Hejsan"});
+  ioopm_hash_table_insert(ht, key, value);
   CU_ASSERT_TRUE(ioopm_hash_table_all(ht, cmp_str_all, &value));
   ioopm_hash_table_destroy(ht);
 }
@@ -333,7 +334,7 @@ static void test_linked_list_size()
 
   size_t size = ioopm_linked_list_size(list);
 
-  printf("Size: %d", size);
+  printf("Size: %zu", size);
 
   CU_ASSERT_EQUAL(size, 1);
 
@@ -399,7 +400,7 @@ int main()
     (NULL == CU_add_test(test_suite, "Test linked_list prepend", test_linked_list_prepend)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list get", test_linked_list_get)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list insert", test_linked_list_insert)) ||
-    (NULL == CU_add_test(test_suite, "Test linked_list remove", test_linked_list_remove))
+    (NULL == CU_add_test(test_suite, "Test linked_list remove", test_linked_list_remove)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list contains", test_linked_list_contains)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list size", test_linked_list_size)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list is_empty", test_linked_list_is_empty))
