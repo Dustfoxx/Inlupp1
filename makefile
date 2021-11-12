@@ -12,8 +12,11 @@ hash: list.o hash.o
 	$(C_COMPILER) $(C_OPTIONS) $(C_LINK_OPTIONS) hash_table.o linked_list.o -o hash 
 
 test: list.o hash.o unit.o
-	$(C_COMPILER) $(C_OPTIONS) $(C_LINK_OPTIONS) $(CUNIT_LINK) unittests.o hash_table.o linked_list.o -o test
+	$(C_COMPILER) $(C_OPTIONS) $(C_LINK_OPTIONS) unittests.o hash_table.o linked_list.o -o test $(CUNIT_LINK)
 
+run_test: test 
+	valgrind --leak-check=full ./test
+	
 freq.o: freq-count.c
 	$(C_COMPILER) $(C_OPTIONS) -c freq-count.c
 

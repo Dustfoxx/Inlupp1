@@ -34,21 +34,14 @@ static void test_insert1()
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 5}, (elem_t) {.pointer = "Vad"});
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 8}, (elem_t) {.pointer = "Heter"});
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 15}, (elem_t) {.pointer = "Du"});
-<<<<<<< HEAD
-
-=======
->>>>>>> d65ef05dc780d776c52d456c7f501405bbac6fcc
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 2}).value.pointer, "Hej");
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 5}).value.pointer, "Vad");
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 8}).value.pointer, "Heter");
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 15}).value.pointer, "Du");
-<<<<<<< HEAD
-=======
 
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 20}, (elem_t) {.pointer = "Woohoo"});
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 20}).value.pointer, "Woohoo");
 
->>>>>>> d65ef05dc780d776c52d456c7f501405bbac6fcc
     ioopm_hash_table_destroy(test);
 }
 
@@ -56,11 +49,7 @@ static void test_insert2()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 20}, (elem_t) {.pointer = "Woohoo"});
-<<<<<<< HEAD
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 20}).value.pointer, "Woohoo");
-=======
-    //CU_ASSERT_STRING_EQUAL((char *) test->buckets[3].next->value.pointer, "Woohoo");
->>>>>>> d65ef05dc780d776c52d456c7f501405bbac6fcc
     ioopm_hash_table_destroy(test);
 }
 
@@ -68,11 +57,7 @@ static void test_insert3()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = -5}, (elem_t) {.pointer = "Woohoo"}); //Kollar edge-case ifall input-key är negativ. Denna görs om till positiv i insert, därför kollar vi i bucket 5 på raden nedan
-<<<<<<< HEAD
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = -5}).value.pointer, "Woohoo");
-=======
-    //CU_ASSERT_STRING_EQUAL((char *) test->buckets[5].next->value.pointer, "Woohoo");
->>>>>>> d65ef05dc780d776c52d456c7f501405bbac6fcc
     ioopm_hash_table_destroy(test);
 }
 
@@ -350,13 +335,7 @@ static void test_linked_list_size()
 
   size_t size = ioopm_linked_list_size(list);
 
-<<<<<<< HEAD
-  printf("Size: %zu", size);
-
-  CU_ASSERT_EQUAL(size, 1);
-=======
   CU_ASSERT_EQUAL(size, 6);
->>>>>>> d65ef05dc780d776c52d456c7f501405bbac6fcc
 
   ioopm_linked_list_destroy(list);
 }
