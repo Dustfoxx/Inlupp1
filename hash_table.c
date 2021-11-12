@@ -5,24 +5,6 @@
 
 #define start_buckets 17
 
-struct entry
-{
-  elem_t key;    // holds the key
-  elem_t value;  // holds the value
-  entry_t *next; // points to the next entry (possibly NULL)
-};
-
-struct hash_table
-{
-  entry_t *buckets;                     
-  ioopm_hash_function hash_func;      
-  ioopm_eq_function key_equiv_func;
-  ioopm_eq_function value_equiv_func;
-  float load_factor; 
-  int num_buckets;
-  size_t size;
-};
-
 //----------------------------------------------------------------------------------------------
 
 int key_hash(elem_t a)
@@ -548,13 +530,13 @@ static void test_all_values()
     ioopm_hash_table_destroy(ht);
 }
 
-static void test_apply_to_all()
-{
-    ioopm_hash_table_t *ht = create_large_table();
-    int modulo_val = 5;
-    ioopm_hash_table_apply_to_all(ht, check_modulo, &modulo_val);
-    ioopm_hash_table_destroy(ht);
-}
+// static void test_apply_to_all()
+// {
+//     ioopm_hash_table_t *ht = create_large_table();
+//     int modulo_val = 5;
+//     ioopm_hash_table_apply_to_all(ht, check_modulo, &modulo_val);
+//     ioopm_hash_table_destroy(ht);
+// }
 
 static void test_rehash()
 {

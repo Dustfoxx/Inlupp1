@@ -65,8 +65,23 @@ void ioopm_linked_list_prepend(ioopm_list_t *list, elem_t value)
 static ioopm_list_iterator_t *find_index(ioopm_list_t *list, int index)
 {
     ioopm_list_iterator_t *iter = ioopm_list_iterator(list);
-    int i = 0;
-    for(; i < index; ioopm_iterator_next(iter), i++)
+    
+    for(int i = 0; i < index; ioopm_iterator_next(iter), i++)
+    {
+        if(iter->next == NULL)
+        {
+            ioopm_iterator_destroy(iter);
+            return NULL;
+        }
+    }
+    return iter;
+}
+
+static ioopm_list_iterator_t *find_previous_index(ioopm_list_t *list, int index)
+{
+    ioopm_list_iterator_t *iter = ioopm_list_iterator(list);
+
+    for(int i = 0; i < index - 1; ioopm_iterator_next(iter), i++)
     {
         if(iter->next == NULL)
         {
@@ -79,7 +94,7 @@ static ioopm_list_iterator_t *find_index(ioopm_list_t *list, int index)
 
 bool ioopm_linked_list_insert(ioopm_list_t *list, int index, elem_t value)
 {
-    ioopm_list_iterator_t *chk_index = find_index(list, index);
+    ioopm_list_iterator_t *chk_index = find_previous_index(list, index);
     bool return_val = false;
     if(chk_index)
     {
@@ -94,19 +109,32 @@ bool ioopm_linked_list_insert(ioopm_list_t *list, int index, elem_t value)
 elem_t ioopm_linked_list_remove(ioopm_list_t *list, int index)
 { //Returns zero when wrong
     elem_t return_val = (elem_t) {.int_value = 0, .uns_int = 0, .fl_value = 0, .pointer = NULL};
-    ioopm_list_iterator_t *chk_index = find_index(list, index);
+
+    ioopm_list_iterator_t *chk_index = NULL;
+
+    if(index == 0)
+    {
+        chk_index = calloc(1, sizeof(ioopm_list_iterator_t));
+        chk_index->current = list;
+        chk_index->next = list->next;
+        chk_index->first = list;
+    }
+    else
+    {
+        chk_index = find_previous_index(list, index);
+    }
     if(chk_index)
     {
-        return_val = chk_index->current->next->value;
-        if(chk_index->current->next->next)
+        return_val = chk_index->next->value;
+        if(chk_index->next->next)
         {
-            ioopm_list_t *new_ptr = chk_index->current->next->next;
-            free(chk_index->current->next);
+            ioopm_list_t *new_ptr = chk_index->next->next;
+            free(chk_index->next);
             chk_index->current->next = new_ptr;
         }
         else
         {
-            free(chk_index->current->next);
+            free(chk_index->next);
             chk_index->current->next = NULL;
         }
     }

@@ -24,6 +24,23 @@ typedef bool (ioopm_predicate)(elem_t key, elem_t value, void *extra);      //Te
 typedef void(*ioopm_apply_function)(elem_t key, elem_t value, void *extra); //Template for "apply" function
 typedef int(*ioopm_hash_function)(elem_t key);                              //Template for key hash function
 
+struct entry
+{
+  elem_t key;    // holds the key
+  elem_t value;  // holds the value
+  entry_t *next; // points to the next entry (possibly NULL)
+};
+
+struct hash_table
+{
+  entry_t *buckets;                     
+  ioopm_hash_function hash_func;      
+  ioopm_eq_function key_equiv_func;
+  ioopm_eq_function value_equiv_func;
+  float load_factor; 
+  int num_buckets;
+  size_t size;
+};
 
 /// @brief Create a new hash table with preset load_factor, size and comparisonfunctions
 /// Meant for a standard table with int keys and string values
