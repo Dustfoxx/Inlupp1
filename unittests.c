@@ -173,7 +173,7 @@ static void test_all_values()
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
   elem_t key = {.int_value = 10};
   elem_t value = {.pointer = "Hejsan"};
-  ioopm_hash_table_insert(ht, (elem_t) {.int_value = 10}, (elem_t) {.pointer = "Hejsan"});
+  ioopm_hash_table_insert(ht, key, (elem_t) {.pointer = "Hejsan"});
   CU_ASSERT_TRUE(ioopm_hash_table_all(ht, cmp_str_all, &value));
   ioopm_hash_table_destroy(ht);
 }
