@@ -125,26 +125,28 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
 
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value)
 {
-  /// Calculate the bucket for this entry
-  size_t bucket = abs(ht->hash_func(key) % ht->num_buckets);
-  /// Search for an existing entry for a key
-  entry_t *entry = find_previous_entry_for_key(&ht->buckets[bucket], key, ht->key_equiv_func);
-  entry_t *next = entry->next;
+  if (ht->hash_func(key) >= 0) {
+    /// Calculate the bucket for this entry
+    size_t bucket = ht->hash_func(key) % ht->num_buckets;
+    /// Search for an existing entry for a key
+    entry_t *entry = find_previous_entry_for_key(&ht->buckets[bucket], key, ht->key_equiv_func);
+    entry_t *next = entry->next;
 
-  /// Check if the next entry should be updated or not
-  if (next != NULL && ht->key_equiv_func(next->key, key))
+    /// Check if the next entry should be updated or not
+    if (next != NULL && ht->key_equiv_func(next->key, key))
+      {
+        next->value = value;
+      }
+    else
+      {
+        entry->next = entry_create(key, value, next);
+        ht->size += 1;
+      }
+    
+    if((float)ht->size/(float)ht->num_buckets > ht->load_factor)
     {
-      next->value = value;
+        rehash_buckets(ht);
     }
-  else
-    {
-      entry->next = entry_create(key, value, next);
-      ht->size += 1;
-    }
-  
-  if((float)ht->size/(float)ht->num_buckets > ht->load_factor)
-  {
-      rehash_buckets(ht);
   }
 }
 
