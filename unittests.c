@@ -49,7 +49,7 @@ static void test_insert2()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 20}, (elem_t) {.pointer = "Woohoo"});
-    //CU_ASSERT_STRING_EQUAL((char *) test->buckets[3].next->value.pointer, "Woohoo");
+    CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 20}).value.pointer, "Woohoo");
     ioopm_hash_table_destroy(test);
 }
 
@@ -57,7 +57,7 @@ static void test_insert3()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = -5}, (elem_t) {.pointer = "Woohoo"}); //Kollar edge-case ifall input-key är negativ. Denna görs om till positiv i insert, därför kollar vi i bucket 5 på raden nedan
-    //CU_ASSERT_STRING_EQUAL((char *) test->buckets[5].next->value.pointer, "Woohoo");
+    CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = -5}).value.pointer, "Woohoo");
     ioopm_hash_table_destroy(test);
 }
 
@@ -173,7 +173,7 @@ static void test_all_values()
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
   elem_t key = {.int_value = 10};
   elem_t value = {.pointer = "Hejsan"};
-  ioopm_hash_table_insert(ht, key, (elem_t) {.pointer = "Hejsan"});
+  ioopm_hash_table_insert(ht, key, value);
   CU_ASSERT_TRUE(ioopm_hash_table_all(ht, cmp_str_all, &value));
   ioopm_hash_table_destroy(ht);
 }
