@@ -125,9 +125,8 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
 
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value)
 {
-  if (ht->hash_func(key) >= 0) {
     /// Calculate the bucket for this entry
-    size_t bucket = ht->hash_func(key) % ht->num_buckets;
+    size_t bucket = abs(ht->hash_func(key) % ht->num_buckets);
     /// Search for an existing entry for a key
     entry_t *entry = find_previous_entry_for_key(&ht->buckets[bucket], key, ht->key_equiv_func);
     entry_t *next = entry->next;
@@ -147,7 +146,6 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value)
     {
         rehash_buckets(ht);
     }
-  }
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -155,7 +153,7 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value)
 option_t ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key)
 {
   /// Find the previous entry for key
-  entry_t *tmp = find_previous_entry_for_key(&ht->buckets[ht->hash_func(key) % ht->num_buckets], key, ht->key_equiv_func);
+  entry_t *tmp = find_previous_entry_for_key(&ht->buckets[abs(ht->hash_func(key) % ht->num_buckets)], key, ht->key_equiv_func);
   entry_t *next = tmp->next;
 
   if (next && ht->key_equiv_func(next->key, key))

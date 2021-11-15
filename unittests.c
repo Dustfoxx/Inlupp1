@@ -57,7 +57,7 @@ static void test_insert3()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = -5}, (elem_t) {.pointer = "Woohoo"}); //Kollar edge-case ifall input-key är negativ. Denna görs om till positiv i insert, därför kollar vi i bucket 5 på raden nedan
-    CU_ASSERT_FALSE(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 5}).success);
+    CU_ASSERT_TRUE(ioopm_hash_table_lookup(test, (elem_t) {.int_value = -5}).success);
     ioopm_hash_table_destroy(test);
 }
 

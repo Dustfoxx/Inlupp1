@@ -1,8 +1,9 @@
 # VARIABLES
 C_COMPILER     = gcc
-C_OPTIONS      = -Wall -pedantic -g -pg
+C_OPTIONS      = -Wall -pedantic -g
 C_LINK_OPTIONS = -lm 
 CUNIT_LINK     = -lcunit
+FREQ_TEXT 	   = 16k-words.txt
 
 
 freq: list.o hash.o freq.o
@@ -16,6 +17,9 @@ test: list.o hash.o unit.o
 
 run_test: test 
 	valgrind --leak-check=full ./test
+
+run_freq: freq 
+	valgrind --leak-check=full ./freq $(FREQ_TEXT)
 	
 freq.o: freq-count.c
 	$(C_COMPILER) $(C_OPTIONS) -c freq-count.c
