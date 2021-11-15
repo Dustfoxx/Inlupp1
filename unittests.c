@@ -39,6 +39,7 @@ static void test_hash_table_insert1()
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 8}).value.pointer, "Heter");
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 15}).value.pointer, "Du");
 
+
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 20}, (elem_t) {.pointer = "Woohoo"});
     CU_ASSERT_STRING_EQUAL(ioopm_hash_table_lookup(test, (elem_t) {.int_value = 20}).value.pointer, "Woohoo");
 
@@ -178,13 +179,13 @@ static void test_hash_table_all_values()
   ioopm_hash_table_destroy(ht);
 }
 
-void change_value (elem_t value_ignored, elem_t val, void *x)
+void change_value (elem_t key, elem_t val, void *x)
 {
-    int **key = x;
+    int **var = x;
 
-    if(**key == value_ignored.int_value)
+    if(**var == key.int_value)
     {
-      **key = **key*2;
+      **var = **var*2; //Multiplies key with 2
     }
 }
 
@@ -193,10 +194,10 @@ void test_ioopm_hash_table_apply_to_all(void)
   ioopm_hash_table_t *ht = create_large_table_test();
 
   int var = 2;
-  int *tmpptr = &var;
-  int **key = &tmpptr;
+  int *tmpptr = &var; //Saves adress to var
+  int **key = &tmpptr; //Saves adress to tmpptr
 
-  ioopm_hash_table_apply_to_all(ht, change_value, key);
+  ioopm_hash_table_apply_to_all(ht, change_value, key); //
 
   CU_ASSERT_EQUAL(**key, 64);
   ioopm_hash_table_destroy(ht);

@@ -12,20 +12,6 @@ typedef struct list ioopm_list_t; /// Meta: struct definition goes in C file
 typedef bool (ioopm_int_predicate)(elem_t key, void *extra);
 typedef void(*ioopm_apply_int_function)(elem_t key, void *extra);
 
-struct iter
-{
-    struct list *current;
-    struct list *next;
-    struct list *first;
-};
-
-struct list
-{
-    elem_t value;
-    struct list *next;
-    ioopm_eq_function list_eq;
-};
-
 /// @brief Create an iterator for a given list
 /// @param list the list to be iterated over
 /// @return an iteration positioned at the start of list

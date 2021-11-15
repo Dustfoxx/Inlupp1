@@ -5,6 +5,24 @@
 
 #define start_buckets 17
 
+struct entry
+{
+  elem_t key;    // holds the key
+  elem_t value;  // holds the value
+  entry_t *next; // points to the next entry (possibly NULL)
+};
+
+struct hash_table
+{
+  entry_t *buckets;                     
+  ioopm_hash_function hash_func;      
+  ioopm_eq_function key_equiv_func;
+  ioopm_eq_function value_equiv_func;
+  float load_factor; 
+  int num_buckets;
+  size_t size;
+};
+
 //----------------------------------------------------------------------------------------------
 
 int key_hash(elem_t a)
@@ -234,8 +252,7 @@ ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht)
 {
     ioopm_list_t *list = ioopm_linked_list_create(ht->key_equiv_func);
     size_t p = 0;
-    for(size_t i = 0; i < ht->num_buckets; i++) //TODO: Denna typ av loop sker ofta
-    //Försök komma på sätt att bryta ut
+    for(size_t i = 0; i < ht->num_buckets; i++)
     {
         entry_t *ptr = ht->buckets[i].next;
         
@@ -255,8 +272,7 @@ ioopm_list_t *ioopm_hash_table_values(ioopm_hash_table_t *ht)
 {
     ioopm_list_t *returned_vals = ioopm_linked_list_create(ht->value_equiv_func);
     size_t p = 0;
-    for(size_t i = 0; i < ht->num_buckets; i++) //Denna typ av loop sker ofta
-    //Försök komma på sätt att bryta ut
+    for(size_t i = 0; i < ht->num_buckets; i++)
     {
         entry_t *ptr = ht->buckets[i].next; 
 
@@ -282,8 +298,8 @@ static bool key_equiv(elem_t key, elem_t value_ignored, void *x)
 static bool value_equiv(elem_t key_ignored, elem_t value, void *x)
 {
   elem_t *other_pointer = x;
-  return !strcmp((char *) value.pointer, (char *) other_pointer->pointer);
-}
+  return !strcmp((char *) value.pointer, (char *) other_pointer->pointer); //Strcmp returns 0 when strings are equal, which would equal to false in the
+}                                                                          //functions return statement, hence the "!" in the beginning
 
 bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, elem_t key)
 {
