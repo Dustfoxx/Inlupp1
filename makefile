@@ -1,6 +1,6 @@
 # VARIABLES
 C_COMPILER     = gcc
-C_OPTIONS      = -Wall -pedantic -g
+C_OPTIONS      = -Wall -pedantic -g -fprofile-arcs -ftest-coverage
 C_LINK_OPTIONS = -lm 
 CUNIT_LINK     = -lcunit
 FREQ_TEXT 	   = 16k-words.txt

@@ -7,6 +7,45 @@
 #include "hash_table.h"
 #include "linked_list.h"
 #include "common.h"
+#include "iterator.h"
+
+//------------------------------------------------S T R U C T S-----------------------------------------------------------------------------------
+//Compiler was not able to find structs from c-files, so these are copied into here to make it work.
+//We know this is not best practice by any means, but since this file is strictly for unit tests, we decided to go with it anyway.
+
+struct entry
+{
+  elem_t key;    // holds the key
+  elem_t value;  // holds the value
+  entry_t *next; // points to the next entry (possibly NULL)
+};
+
+struct hash_table
+{
+  entry_t *buckets;                     
+  ioopm_hash_function hash_func;      
+  ioopm_eq_function key_equiv_func;
+  ioopm_eq_function value_equiv_func;
+  float load_factor; 
+  int num_buckets;
+  size_t size;
+};
+
+struct iter
+{
+    struct list *current;
+    struct list *next;
+    struct list *first;
+};
+
+struct list
+{
+    elem_t value;
+    struct list *next;
+    ioopm_eq_function list_eq;
+};
+
+//-----------------------------------------------------------------------------------------------------------------------------------
 
 //------HASH TABLE TESTS------
 
@@ -357,6 +396,42 @@ static void test_linked_list_is_empty()
   ioopm_linked_list_destroy(list);
 }
 
+static void test_linked_list_iterator()
+{
+  ioopm_list_t *list = ioopm_linked_list_create(eq_int_test);
+
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 1});
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 2});
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 3});
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 4});
+  ioopm_linked_list_append(list, (elem_t) {.int_value = 5});
+
+  ioopm_list_iterator_t *iter = ioopm_list_iterator(list);
+
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iter).int_value, 1);
+
+  ioopm_iterator_next(iter);
+
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iter).int_value, 2);
+
+  ioopm_iterator_next(iter);
+  ioopm_iterator_next(iter);
+  ioopm_iterator_next(iter);
+  ioopm_iterator_next(iter);
+
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iter).int_value, 5);
+
+  ioopm_iterator_reset(iter);
+
+  CU_ASSERT_EQUAL(ioopm_iterator_current(iter).int_value, 1);
+
+  ioopm_iterator_destroy(&iter);
+
+  CU_ASSERT_PTR_NULL(iter);
+
+  ioopm_linked_list_destroy(list);
+}
+
 
 int init_suite(void)
 {
@@ -382,19 +457,19 @@ int main()
   }
 
   if (
-    (NULL == CU_add_test(test_suite, "Test create/destroy", test_hash_table_create_destroy)) ||
-    (NULL == CU_add_test(test_suite, "Test insert", test_hash_table_insert1)) ||
-    (NULL == CU_add_test(test_suite, "Test insert2", test_hash_table_insert2)) ||
-    (NULL == CU_add_test(test_suite, "Test insert3", test_hash_table_insert3)) ||
-    (NULL == CU_add_test(test_suite, "Test lookup1", test_hash_table_lookup1)) ||
-    (NULL == CU_add_test(test_suite, "Test lookup2", test_hash_table_lookup2)) ||
-    (NULL == CU_add_test(test_suite, "Test remove", test_hash_table_remove)) ||
-    (NULL == CU_add_test(test_suite, "Test size", test_hash_table_size)) ||
-    (NULL == CU_add_test(test_suite, "Test empty", test_hash_table_empty)) ||
-    (NULL == CU_add_test(test_suite, "Test clear", test_hash_table_clear)) ||
-    (NULL == CU_add_test(test_suite, "Test has_key1", test_hash_table_has_key1)) ||
-    (NULL == CU_add_test(test_suite, "Test has_value1", test_hash_table_has_value1)) ||
-    (NULL == CU_add_test(test_suite, "Test has_value_all", test_hash_table_all_values)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table create/destroy", test_hash_table_create_destroy)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table insert", test_hash_table_insert1)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table insert2", test_hash_table_insert2)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table insert3", test_hash_table_insert3)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table lookup1", test_hash_table_lookup1)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table lookup2", test_hash_table_lookup2)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table remove", test_hash_table_remove)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table size", test_hash_table_size)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table empty", test_hash_table_empty)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table clear", test_hash_table_clear)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table has_key1", test_hash_table_has_key1)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table has_value1", test_hash_table_has_value1)) ||
+    (NULL == CU_add_test(test_suite, "Test hash_table has_value_all", test_hash_table_all_values)) ||
     (NULL == CU_add_test(test_suite, "Test hash_table apply_to_all", test_ioopm_hash_table_apply_to_all)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list append", test_linked_list_append)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list prepend", test_linked_list_prepend)) ||
@@ -403,7 +478,8 @@ int main()
     (NULL == CU_add_test(test_suite, "Test linked_list remove", test_linked_list_remove)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list contains", test_linked_list_contains)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list size", test_linked_list_size)) ||
-    (NULL == CU_add_test(test_suite, "Test linked_list is_empty", test_linked_list_is_empty))
+    (NULL == CU_add_test(test_suite, "Test linked_list is_empty", test_linked_list_is_empty)) ||
+    (NULL == CU_add_test(test_suite, "Test linked_list iterator", test_linked_list_iterator))
   )
   {
     CU_cleanup_registry();

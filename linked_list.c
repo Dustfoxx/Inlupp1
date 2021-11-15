@@ -2,8 +2,6 @@
 #include "linked_list.h"
 #include "common.h"
 
-int global = 0;
-
 struct iter
 {
     struct list *current;
@@ -84,7 +82,7 @@ static ioopm_list_iterator_t *find_index(ioopm_list_t *list, int index)
     {
         if(iter->next == NULL)
         {
-            ioopm_iterator_destroy(iter);
+            ioopm_iterator_destroy(&iter);
             return NULL;
         }
     }
@@ -99,7 +97,7 @@ static ioopm_list_iterator_t *find_previous_index(ioopm_list_t *list, int index)
     {
         if(iter->next == NULL)
         {
-            ioopm_iterator_destroy(iter);
+            ioopm_iterator_destroy(&iter);
             return NULL;
         }
     }
@@ -116,7 +114,7 @@ bool ioopm_linked_list_insert(ioopm_list_t *list, int index, elem_t value)
         chk_index->current->next->value = value;
         return_val = true;
     }
-    ioopm_iterator_destroy(chk_index);
+    ioopm_iterator_destroy(&chk_index);
     return return_val;
 }
 
@@ -153,7 +151,7 @@ elem_t ioopm_linked_list_remove(ioopm_list_t *list, int index)
         }
     }
     
-    ioopm_iterator_destroy(chk_index);
+    ioopm_iterator_destroy(&chk_index);
     return return_val;
 }
 
@@ -164,7 +162,7 @@ elem_t ioopm_linked_list_get(ioopm_list_t *list, int index)
     if(found_index)
     {
         elem_t temp = found_index->current->value;
-        ioopm_iterator_destroy(found_index);
+        ioopm_iterator_destroy(&found_index);
         return temp;
     }
     else
@@ -178,12 +176,12 @@ bool ioopm_linked_list_contains(ioopm_list_t *list, elem_t element)
     {
         if(list->list_eq(iter->current->value, element))
         {
-            ioopm_iterator_destroy(iter);
+            ioopm_iterator_destroy(&iter);
             return true;
         }
         else if(iter->next == NULL)
         {
-            ioopm_iterator_destroy(iter);
+            ioopm_iterator_destroy(&iter);
             return false;
         }
     }
@@ -228,24 +226,12 @@ bool ioopm_linked_list_any(ioopm_list_t *list, ioopm_int_predicate prop, void *e
     return false;
 }
 
-bool dividable_by(elem_t value, void *div)
-{
-    int *division = div;
-    return !(value.int_value % *division);
-}
-
 void ioopm_linked_list_apply_to_all(ioopm_list_t *list, ioopm_apply_int_function fun, void *extra)
 {
     for(; list->next; list = list->next)
     {
         fun(list->next->value, extra);
     }
-}
-
-void print_key(elem_t key, void *extra)
-{
-    char *temp = extra;
-    printf("%d, %s\n", key.int_value, temp);
 }
 
 ioopm_list_t *create_list(ioopm_eq_function eq)
@@ -264,15 +250,14 @@ bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter)
 }
 
 elem_t ioopm_iterator_next(ioopm_list_iterator_t *iter)
-{//Needs check if there is no next
+{
     if(ioopm_iterator_has_next(iter))
     {
         ioopm_list_t *new_next = iter->next->next;
         iter->current = iter->next;
         iter->next = new_next;
-        return iter->current->value;
     }
-    return (elem_t) {.int_value = 0, .uns_int = 0, .pointer = NULL};
+    return iter->current->value;
 }
 
 void ioopm_iterator_reset(ioopm_list_iterator_t *iter)
@@ -287,15 +272,10 @@ elem_t ioopm_iterator_current(ioopm_list_iterator_t *iter)
     return iter->current->value;
 }
 
-void ioopm_iterator_destroy(ioopm_list_iterator_t *iter)
+void ioopm_iterator_destroy(ioopm_list_iterator_t **iter)
 {
-    free(iter);
-    iter = NULL;
+    free(*iter);
+    *iter = NULL;
 }
-
 
 //-----------------------------------------------------------------------
-bool eq_int(elem_t a, elem_t b)
-{
-    return a.int_value == b.int_value;
-}

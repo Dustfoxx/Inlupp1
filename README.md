@@ -16,6 +16,14 @@ that you yourself has allocated memory for we recommend that you use the functio
 your own written function to remove all data before using destroy as the data will otherwise be lost and subsequently 
 cause a leak.
 
+To run tests:
+Step 1: run command: make test
+Step 2: run command: make run_test
+
+Line coverage hash_table.c: 87.93%.
+Line coverage linked_list.c: 82.19%.
+
+
 
 Performance tests:
     -Test on document with long words 1k.

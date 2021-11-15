@@ -27,4 +27,4 @@ elem_t ioopm_iterator_current(ioopm_list_iterator_t *iter);
 
 /// @brief Destroy the iterator and return its resources
 /// @param iter the iterator
-void ioopm_iterator_destroy(ioopm_list_iterator_t *iter);
+void ioopm_iterator_destroy(ioopm_list_iterator_t **iter);
