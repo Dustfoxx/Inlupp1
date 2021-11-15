@@ -20,14 +20,14 @@ static ioopm_hash_table_t *create_large_table_test()
   return ht;
 }
 
-static void test_create_destroy()
+static void test_hash_table_create_destroy()
 {
    ioopm_hash_table_t *ht = ioopm_hash_table_create();
    CU_ASSERT_PTR_NOT_NULL(ht);
    ioopm_hash_table_destroy(ht);
 }
 
-static void test_insert1()
+static void test_hash_table_insert1()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 2}, (elem_t) {.pointer = "Hej"});
@@ -45,7 +45,7 @@ static void test_insert1()
     ioopm_hash_table_destroy(test);
 }
 
-static void test_insert2()
+static void test_hash_table_insert2()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = 20}, (elem_t) {.pointer = "Woohoo"});
@@ -53,7 +53,7 @@ static void test_insert2()
     ioopm_hash_table_destroy(test);
 }
 
-static void test_insert3()
+static void test_hash_table_insert3()
 {
     ioopm_hash_table_t *test = ioopm_hash_table_create();
     ioopm_hash_table_insert(test, (elem_t) {.int_value = -5}, (elem_t) {.pointer = "Woohoo"}); //Kollar edge-case ifall input-key är negativ. Denna görs om till positiv i insert, därför kollar vi i bucket 5 på raden nedan
@@ -61,7 +61,7 @@ static void test_insert3()
     ioopm_hash_table_destroy(test);
 }
 
-static void test_lookup1()
+static void test_hash_table_lookup1()
 {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
   elem_t key = {.int_value = 10};
@@ -73,7 +73,7 @@ static void test_lookup1()
   ioopm_hash_table_destroy(ht);
 }
 
-static void test_lookup2()
+static void test_hash_table_lookup2()
 {
       ioopm_hash_table_t *ht = ioopm_hash_table_create();
       int check = 0;
@@ -95,7 +95,7 @@ static void test_lookup2()
       ioopm_hash_table_destroy(ht);
 }
 
-static void test_remove()
+static void test_hash_table_remove()
 {
     ioopm_hash_table_t *ht = create_large_table_test();
 
@@ -112,7 +112,7 @@ static void test_remove()
     ioopm_hash_table_destroy(ht);
 }
 
-static void test_size()
+static void test_hash_table_size()
 {
   ioopm_hash_table_t *ht = create_large_table_test();
 
@@ -120,7 +120,7 @@ static void test_size()
   ioopm_hash_table_destroy(ht);
 }
 
-static void test_empty()
+static void test_hash_table_empty()
 {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
 
@@ -128,7 +128,7 @@ static void test_empty()
   ioopm_hash_table_destroy(ht);
 }
 
-static void test_clear()
+static void test_hash_table_clear()
 {
     ioopm_hash_table_t *ht = create_large_table_test();
     if(!ioopm_hash_table_is_empty(ht))
@@ -137,7 +137,7 @@ static void test_clear()
     ioopm_hash_table_destroy(ht);
 }
 
-static void test_has_key1()
+static void test_hash_table_has_key1()
 {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
   elem_t key = {.int_value = 10};
@@ -149,7 +149,7 @@ static void test_has_key1()
   ioopm_hash_table_destroy(ht);
 }
 
-static void test_has_value1()
+static void test_hash_table_has_value1()
 {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
   elem_t key = {.int_value = 10};
@@ -168,7 +168,7 @@ static bool cmp_str_all(elem_t ignored, elem_t a, void *b)
     return !strcmp((char *) a.pointer, (char *) temp->pointer);
 }
 
-static void test_all_values()
+static void test_hash_table_all_values()
 {
   ioopm_hash_table_t *ht = ioopm_hash_table_create();
   elem_t key = {.int_value = 10};
@@ -381,19 +381,19 @@ int main()
   }
 
   if (
-    (NULL == CU_add_test(test_suite, "Test create/destroy", test_create_destroy)) ||
-    (NULL == CU_add_test(test_suite, "Test insert", test_insert1)) ||
-    (NULL == CU_add_test(test_suite, "Test insert2", test_insert2)) ||
-    (NULL == CU_add_test(test_suite, "Test insert3", test_insert3)) ||
-    (NULL == CU_add_test(test_suite, "Test lookup1", test_lookup1)) ||
-    (NULL == CU_add_test(test_suite, "Test lookup2", test_lookup2)) ||
-    (NULL == CU_add_test(test_suite, "Test remove", test_remove)) ||
-    (NULL == CU_add_test(test_suite, "Test size", test_size)) ||
-    (NULL == CU_add_test(test_suite, "Test empty", test_empty)) ||
-    (NULL == CU_add_test(test_suite, "Test clear", test_clear)) ||
-    (NULL == CU_add_test(test_suite, "Test has_key1", test_has_key1)) ||
-    (NULL == CU_add_test(test_suite, "Test has_value1", test_has_value1)) ||
-    (NULL == CU_add_test(test_suite, "Test has_value_all", test_all_values)) ||
+    (NULL == CU_add_test(test_suite, "Test create/destroy", test_hash_table_create_destroy)) ||
+    (NULL == CU_add_test(test_suite, "Test insert", test_hash_table_insert1)) ||
+    (NULL == CU_add_test(test_suite, "Test insert2", test_hash_table_insert2)) ||
+    (NULL == CU_add_test(test_suite, "Test insert3", test_hash_table_insert3)) ||
+    (NULL == CU_add_test(test_suite, "Test lookup1", test_hash_table_lookup1)) ||
+    (NULL == CU_add_test(test_suite, "Test lookup2", test_hash_table_lookup2)) ||
+    (NULL == CU_add_test(test_suite, "Test remove", test_hash_table_remove)) ||
+    (NULL == CU_add_test(test_suite, "Test size", test_hash_table_size)) ||
+    (NULL == CU_add_test(test_suite, "Test empty", test_hash_table_empty)) ||
+    (NULL == CU_add_test(test_suite, "Test clear", test_hash_table_clear)) ||
+    (NULL == CU_add_test(test_suite, "Test has_key1", test_hash_table_has_key1)) ||
+    (NULL == CU_add_test(test_suite, "Test has_value1", test_hash_table_has_value1)) ||
+    (NULL == CU_add_test(test_suite, "Test has_value_all", test_hash_table_all_values)) ||
     (NULL == CU_add_test(test_suite, "Test hash_table apply_to_all", test_ioopm_hash_table_apply_to_all)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list append", test_linked_list_append)) ||
     (NULL == CU_add_test(test_suite, "Test linked_list prepend", test_linked_list_prepend)) ||
