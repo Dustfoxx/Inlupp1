@@ -1,6 +1,6 @@
 # VARIABLES
 C_COMPILER     = gcc
-C_OPTIONS      = -Wall -pedantic -g -pg
+C_OPTIONS      = -Wall -pedantic -g
 C_LINK_OPTIONS = -lm 
 CUNIT_LINK     = -lcunit
 
