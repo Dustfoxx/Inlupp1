@@ -27,8 +27,8 @@ freq.o: freq-count.c
 unit.o: unittests.c
 	$(C_COMPILER) $(C_OPTIONS) -c unittests.c
 
-hash.o: hash_table.c hash_table.h common.h
+hash.o: hash_table.c
 	$(C_COMPILER) $(C_OPTIONS) -c hash_table.c
 
-list.o: linked_list.c linked_list.h iterator.h common.h
+list.o: linked_list.c
 	$(C_COMPILER) $(C_OPTIONS) -c linked_list.c
